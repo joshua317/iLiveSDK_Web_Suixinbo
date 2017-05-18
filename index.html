@@ -12,14 +12,8 @@
     <link rel="stylesheet" href="./css/toastr.min.css">
     <link rel="stylesheet" href="./css/app.css">
     <script type="text/javascript" src="js/jquery.min.js"></script>
-    <!--TLS web sdk(只用于托管模式，独立模式不用引入)-->
-    <!--<script type="text/javascript" src="https://tls.qcloud.com/libs/api.min.js"></script>-->
-    <!--webim sdk-->
-    <!-- <script src="assets/sdk/webim.js"></script> -->
-    <!-- <script src="assets/js/webim_app.js"></script> -->
-    <!--avsdk-->
-    <!--<script src="./assets/js/sdkwrap.js"></script>-->
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/artTemplate.js"></script>
     <script type="text/javascript" src="js/toastr.min.js"></script>
     <script type="text/javascript" src="js/iLiveSDK.js"></script>
     <script type="text/javascript" src="js/demo.js"></script>
@@ -177,11 +171,25 @@
                 <br/>
                 <button type="button" class="btn btn btn-primary" id="refreshroom">刷新房间</button>
                 <br/>
-                <div class="list-group" id="room-list">
+                <div class="list-group row" id="room-list">
                 </div>
             </div>
         </div>
     </div>
+    <script id="room-tpl" type="text/html">
+        {{ each rooms as item }}
+        <div class="col-sm-6 col-md-4 room-item">
+            <div class="thumbnail">
+                <h3>{{ item.info.title }}</h3>
+                <img src="{{ item.info.cover || 'http://ilivesdk-1253488539.cosgz.myqcloud.com/default.png' }}" alt="...">
+                <div class="caption">
+                    <p><span style="float:right">点赞：{{ item.info.thumbup }}</span><span>人数：{{ item.info.memsize }}</span></p>
+                    <p><button href="javascript:;" data-roomnum="{{item.info.roomnum}}" data-groupid="{{item.info.groupid}}" class="btn btn-primary" role="button">加入房间</button></p>
+                </div>
+            </div>
+        </div>
+        {{ /each }}
+    </script>
     <script>
         $('#logout').click(function(e) {
             $('#logoutBox').modal('show');
@@ -222,15 +230,14 @@
                 handleLogout();
             }
         })
-        $('#room-list').click(function(e) {
-            var target = e.target || e.srcElement;
-            var role = Number($("input[name=role]:checked").val());
-            OnBtnJoinRoom($(target).data('roomnum'), role, function() {
+        $('#room-list').on("click", "button", function(e) {
+            var roomnum = $(this).data('roomnum');
+            OnBtnJoinRoom(roomnum, E_Role.Guest, function() {
                 $('#list').css('display', 'none');
                 $('#detail').css('display', 'block');
                 $('#exitPlay').hide();
                 $('#addPlay').hide();
-                $('#room').text('房间号:' + $(target).data('roomnum'));
+                $('#room').text('房间号:' + roomnum);
             })
         });
 

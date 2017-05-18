@@ -31,7 +31,11 @@ var E_IM_CustomCmd = {
     AVIMCMD_Multi_Interact_Refuse: 2052, // 多人互动方收到AVIMCMD_Multi_Invite多人邀请后，拒绝，C2C消息 ： 2052
 };
 
-
+var E_Role = {
+    Guest: 0, //观众
+    LiveMaster: 1, //主播
+    LiveGuest: 2 //连麦观众
+}
 
 function consoleLog(loginfo) {
     if (window.console) {
@@ -233,7 +237,7 @@ function ajaxPost(url, data, succ, err) {
                 if (rspJson.errorCode == 0) {
                     succ(rspJson);
                 } else {
-                    toastr.warning("错误码:" + rspJson.errorCode + " 错误信息:" + rspJson.errorInfo);
+                    toastr.error("错误码:" + rspJson.errorCode + " 错误信息:" + rspJson.errorInfo);
                 }
             } else {
                 toastr.warning("HTTP请求错误！错误码：" + ajax.status);
@@ -272,7 +276,7 @@ function onRoomEvent(roomevent) {
 function OnInit() {
     consoleLog("OnInit");
     sdk = new ILiveSDK(1400027849, 11656, "iLiveSDKCom");
-    toastr.info('正在初始化，请稍后');
+    toastr.info('正在初始化，请稍候');
     sdk.init(function() {
             toastr.success('初始化成功');
             $('#loginBox').css('display', 'block');
@@ -375,7 +379,7 @@ function OnBtnLogout(cb) {
                 //更新状态机
                 StatusManager.setLogin(0);
             }, function(errMsg) {
-                toastr.warning("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
+                toastr.error("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
             });
         }
     );
@@ -392,11 +396,15 @@ function OnBtnGetList() {
         "size": 30,
         "appid": g_appId
     };
+
     ajaxPost(g_serverUrl + "?svc=live&cmd=roomlist", JSON.stringify(jsonObj),
         function(rspJson) {
             for (var i = 0; i < rspJson.data.rooms.length; i++) {
                 var item = rspJson.data.rooms[i];
-                $('#room-list').append('<a class="list-group-item" data-roomnum="' + item.info.roomnum + '" data-groupid="' + item.info.groupid + '">房间:' + item.info.title + '</a>');
+                var html = template("room-tpl", { rooms: rspJson.data.rooms });
+                // console.log(html);
+                $("#room-list").html(html);
+                //$('#room-list').append('<a class="list-group-item" data-roomnum="' + item.info.roomnum + '" data-groupid="' + item.info.groupid + '">房间:' + item.info.title + '</a>');
             }
         }
     );
@@ -404,6 +412,9 @@ function OnBtnGetList() {
 
 
 function OnBtnCreateRoom(cb) {
+
+    // var name = prompt("请输入房间名",document.getElementById("username").value+"的直播间");
+    var name = document.getElementById("username").value + "的直播间";
     var jsonObj = {
         "type": 'live',
         "token": g_token
@@ -420,7 +431,7 @@ function OnBtnCreateRoom(cb) {
                 jsonObj = {
                     "token": g_token,
                     "room": {
-                        "title": 'Web随心播',
+                        "title": '[Web随心播]' + name,
                         "roomnum": rspJson.data.roomnum,
                         "type": "live",
                         "groupid": rspJson.data.groupid,
@@ -442,7 +453,7 @@ function OnBtnCreateRoom(cb) {
                     }
                 ); //这个是运营后台的事件
             }, function(errMsg) {
-                toastr.warning("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
+                toastr.error("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
             }); //这个是sdk的事件
         }
     );
@@ -489,9 +500,9 @@ function getUserList() {
     g_getUserList = setInterval(temp, 10000);
 };
 
-function OnBtnJoinRoom(roomid, role, succ) {
+function OnBtnJoinRoom(roomid, role, succ, err) {
     if (g_request_status) {
-        toastr.warning("正在发起加入房间请求，请稍后..");
+        toastr.warning("正在发起加入房间请求，请稍候..");
         return;
     }
     g_request_status = 1;
@@ -506,6 +517,11 @@ function OnBtnJoinRoom(roomid, role, succ) {
     freeAllRender();
     ajaxPost(g_serverUrl + "?svc=live&cmd=reportmemid", JSON.stringify(jsonObj),
         function(rspJson) {
+            if (rspJson.errorCode != 0) {
+                g_request_status = 0;
+                toastr.error("错误码:" + rspJson.errorCode + " 错误信息:" + rspJson.errorInfo);
+                return;
+            }
             sdk.joinRoom(roomid, "Guest", function() {
                 g_request_status = 0;
                 toastr.success("join room succ");
@@ -530,7 +546,7 @@ function OnBtnJoinRoom(roomid, role, succ) {
                 }
             }, function(errMsg) {
                 g_request_status = 0;
-                toastr.warning("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
+                toastr.error("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
                 err(errMsg);
             });
         },
@@ -570,7 +586,7 @@ function OnBtnQuitRoom(cb) {
                     freeAllRender();
                     cb();
                 }, function(errMsg) {
-                    toastr.warning("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
+                    toastr.error("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
                 });
             }
         );
@@ -682,7 +698,7 @@ function OnBtnSendGroupMessage(msg, succ, err) {
         addMessage('我说:' + escapeHTML(msg));
         $("#group-message").val('');
     }, function(errMsg) {
-        toastr.warning("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
+        toastr.error("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
     });
 }
 
@@ -695,7 +711,7 @@ function OnBtnSendC2CMessage(msg, user) {
         toastr.success("send message succ");
         addMessage('我说:' + escapeHTML(msg));
     }, function(errMsg) {
-        toastr.warning("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
+        toastr.error("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
     });
 }
 
@@ -716,7 +732,7 @@ function OnBtnStartPushStream() {
     sdk.startPushStream(op, function(msg) {
         toastr.success(msg.channelID);
     }, function() {
-        toastr.warning("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
+        toastr.error("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
     });
 }
 
@@ -724,7 +740,7 @@ function OnBtnStopPushStream(chanelId) {
     sdk.stopPushStream(chanelId, function() {
         toastr.success("stop push succ");
     }, function(errMsg) {
-        toastr.warning("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
+        toastr.error("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
     });
 }
 
@@ -744,7 +760,7 @@ function sendC2CMessage(user, msg, cb) {
             cb();
         }
     }, function(errMsg) {
-        toastr.warning("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
+        toastr.error("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
     });
 }
 
@@ -760,7 +776,7 @@ function SendGroupMessage(msg, cb) {
         //重新拉取用户列表
         getUserList();
     }, function(errMsg) {
-        toastr.warning("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
+        toastr.error("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
     });
 }
 
@@ -803,7 +819,7 @@ function dealCustomMessage(user, msg) {
                 $('#detail').css('display', 'none');
                 $('#list').css('display', 'block');
             }, function(errMsg) {
-                toastr.warning("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
+                toastr.error("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
             });
             getUserList();
             break;
