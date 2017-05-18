@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>web随心播</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <!--<meta http-equiv="X-UA-Compatible" content="edge" />-->
+    <!-- site css -->
+    <link rel="stylesheet" href="./css/bootflat.min.css">
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+    <link rel="stylesheet" href="./css/toastr.min.css">
+    <link rel="stylesheet" href="./css/app.css">
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/artTemplate.js"></script>
+    <script type="text/javascript" src="js/toastr.min.js"></script>
+    <script type="text/javascript" src="js/iLiveSDK.js"></script>
+    <script type="text/javascript" src="js/demo.js"></script>
+    <style>
+
+    </style>
+</head>
+
+<body onload="OnInit()" onunload="OnUninit()">
+    <div style="width:1px;height:1px">
+        <object id="iLiveSDKCom" classid="CLSID:54E71417-216D-47A2-9224-C991A099C531" codebase="./iLiveSDK.cab#version=1,0,1,0"></object>
+    </div>
+    <nav class="navbar alert-info">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">
+        iLiveSDK版本号：
+        <span id="version">版本号</span>
+      </a>
+            </div>
+            <button type="button" class="btn btn-default navbar-btn navbar-right" id="logout">登出
+            </button>
+            <span class="navbar-right" id="user"></span>
+            <div class="modal fade in" id="logoutBox" tabindex="-1">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content" id="logoutContent">
+                        <h3 id="logout-text">确定退出登录？</h3>
+                        <button type="button" class="btn btn-danger" id="no">取消</button>
+                        <button type="button" class="btn btn-success" id="yes">确定</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade in" id="invitedBox" tabindex="-1">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content" id="logoutContent">
+                        <h3 id="logout-text">收到了主播连麦的邀请，是否连麦？</h3>
+                        <button type="button" class="btn btn-danger" id="invitedNo">取消</button>
+                        <button type="button" class="btn btn-success" id="invitedYes">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div id="loginBox" style="display:none">
+        <input type="text" class="form-control" id="username" placeholder="用户名">
+        <br>
+        <input type="password" class="form-control" id="password" placeholder="密码">
+        <br>
+        <p id="err">用户名或密码错误</p>
+        <button type="button" class="btn btn-success" id="submit" onclick="OnBtnLogin()">登录</button>
+        <button type="button" class="btn btn-primary" id="register" onclick="OnBtnReg()">注册</button>
+    </div>
+    <div class="container" id="detail" style="min-width:1200px; display: none">
+        <div id="room-info">
+            <span id="room"></span>
+            <button class="btn btn btn-danger" type="button" id="quitroom">退出房间</button>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div id="version"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <h3>消息列表</h3>
+                <div class="jumbotron" style="padding:0;">
+                    <div id="chat_box" class="jumbotron-contents chat-box">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <h3>视频列表</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="thumbnail">
+                            <div class="video-box-standard">
+                                <object id="localRender" classid="CLSID:1EA15A99-7F53-4B6F-8947-B57A0729918E" width="100%" height="202"></object>
+                            </div>
+                            <div class="caption text-center">
+                                <span class="badge badge-primary" id="username0"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="thumbnail">
+                            <div class="video-box-standard">
+                                <object id="render0" classid="CLSID:1EA15A99-7F53-4B6F-8947-B57A0729918E" width="100%" height="202"></object>
+                            </div>
+                            <div class="caption text-center">
+                                <span class="badge badge-primary" id="username0"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="thumbnail">
+                            <div class="video-box-standard">
+                                <object id="render1" classid="CLSID:1EA15A99-7F53-4B6F-8947-B57A0729918E" width="100%" height="202"></object>
+                            </div>
+                            <div class="caption text-center">
+                                <span class="badge badge-primary" id="username1"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="thumbnail">
+                            <div class="video-box-standard">
+                                <object id="render2" classid="CLSID:1EA15A99-7F53-4B6F-8947-B57A0729918E" width="100%" height="202"></object>
+                            </div>
+                            <div class="caption text-center">
+                                <span class="badge badge-primary" id="username2"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <h3>用户列表</h3>
+                <div class="list-group col-md-7 user-box" id="user-list">
+                </div>
+                <button type="button" class="btn btn-success" id="addPlay">上麦</button>&nbsp;
+                <button type="button" class="btn btn-warning" id="exitPlay">下麦</button>
+            </div>
+            <div class="col-md-8">
+                <button id="btn_open_camera" type="button" class="btn btn btn-primary" onclick="OnBtnOpenCamera()">打开摄像头</button>
+                <button id="btn_close_camera" type="button" class="btn btn btn-default" onclick="OnBtnCloseCamera()">关闭摄像头</button>
+                <br/>
+                <br/>
+                <button id="btn_open_mic" type="button" class="btn btn btn-primary" onclick="OnBtnOpenMic()">打开麦克风</button>
+                <button id="btn_close_mic" type="button" class="btn btn btn-default" onclick="OnBtnCloseMic()">关闭麦克风</button>
+                <br/>
+                <br/>
+                <button id="btn_open_player" type="button" class="btn btn btn-primary" onclick="OnBtnOpenPlayer()">打开扬声器</button>
+                <button id="btn_close_player" type="button" class="btn btn btn-default" onclick="OnBtnClosePlayer()">关闭扬声器</button>
+                <br/>
+                <div class="form-inline" style="margin-top:10px;">
+                    <div class="form-group">
+                        <label for="exampleInputName2">发送群消息</label>
+                        <input type="text" class="form-control" id="group-message" placeholder="群消息">
+                    </div>
+                    <button type="button" class="btn btn-default" id="send-group">发送群消息</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container" id="list" style="width:1000px;padding-bottom:20px; display: none">
+        <div class="row">
+            <div class="col-md-12">
+                <h3>开发者调试</h3>
+                <hr/>
+                <button type="button" class="btn btn btn-primary" id="createroom">创建房间</button>
+                <br/>
+                <h3>房间列表</h3>
+                <br/>
+                <button type="button" class="btn btn btn-primary" id="refreshroom">刷新房间</button>
+                <br/>
+                <div class="list-group row" id="room-list">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script id="room-tpl" type="text/html">
+        {{ each rooms as item }}
+        <div class="col-sm-6 col-md-4 room-item">
+            <div class="thumbnail">
+                <h3>{{ item.info.title }}</h3>
+                <img src="{{ item.info.cover || 'http://ilivesdk-1253488539.cosgz.myqcloud.com/default.png' }}" alt="...">
+                <div class="caption">
+                    <p><span style="float:right">点赞：{{ item.info.thumbup }}</span><span>人数：{{ item.info.memsize }}</span></p>
+                    <p><button href="javascript:;" data-roomnum="{{item.info.roomnum}}" data-groupid="{{item.info.groupid}}" class="btn btn-primary" role="button">加入房间</button></p>
+                </div>
+            </div>
+        </div>
+        {{ /each }}
+    </script>
+    <script>
+        $('#logout').click(function(e) {
+            $('#logoutBox').modal('show');
+        })
+        $('#no').click(function() { //  取消退出
+            $('#logoutBox').modal('toggle');
+        });
+
+        function handleLogout() {
+            toastr.warning("正在登出");
+            OnBtnLogout(function() {
+                $('#logoutBox').modal('hide');
+                $('#logout').css('display', 'none');
+                $('#user').css('display', 'none');
+                $('#list').css('display', 'none');
+                $('#detail').css('display', 'none');
+                $('#loginBox').css('display', 'block');
+            });
+        }
+
+        $("#group-message").keypress(function(e) {
+            var keycode = e.which;
+            if (keycode == 13) {
+                $('#send-group').trigger("click");
+                return false;
+            }
+        });
+
+
+        $('#yes').click(function(e) {
+            if (g_role == 1 && g_roomnum) {
+                OnBtnQuitRoom(function() {
+                    toastr.warning("正在退出房间");
+                    $('#detail').css('display', 'none');
+                    $('#list').css('display', 'block');
+                });
+            } else {
+                handleLogout();
+            }
+        })
+        $('#room-list').on("click", "button", function(e) {
+            var roomnum = $(this).data('roomnum');
+            OnBtnJoinRoom(roomnum, E_Role.Guest, function() {
+                $('#list').css('display', 'none');
+                $('#detail').css('display', 'block');
+                $('#exitPlay').hide();
+                $('#addPlay').hide();
+                $('#room').text('房间号:' + roomnum);
+            })
+        });
+
+
+        $('#createroom').click(function(e) {
+            OnBtnCreateRoom(function(id) {
+                $('#room').text('房间号:' + id);
+                $('#list').css('display', 'none');
+                $('#detail').css('display', 'block');
+                $('#exitPlay').show();
+                $('#addPlay').show();
+            })
+        })
+
+        $('#refreshroom').click(function(e) {
+            OnBtnGetList();
+        });
+        // 退出房间
+        $('#quitroom').click(function(e) {
+            OnBtnQuitRoom(function() {
+                $('#detail').css('display', 'none');
+                $('#list').css('display', 'block');
+                OnBtnGetList();
+            })
+        });
+        $('#send-group').on('click', function(e) {
+            var msg = $('#group-message').val();
+
+            if (msg) {
+                OnBtnSendGroupMessage(msg)
+            } else {
+                toastr.error('请输入群消息')
+            }
+        })
+        $('#user-list').on('click', 'button', function(e) {
+            $('#user-list button').removeClass('active');
+            $(this).addClass('active');
+        })
+
+        $('#addPlay').on('click', function() {
+            var ele = $('#user-list .active');
+            if (ele.length == 0) {
+                toastr.warning('请先选择一个观众');
+                return;
+            }
+            if (g_role != 1) {
+                toastr.error('不是主播，无法进行该操作');
+                return;
+            }
+            if (ele.data('role') != 0) {
+                toastr.error('只能对观众进行上麦操作');
+                return;
+            }
+            if (g_liveGuestCount >= g_liveGuestMax) {
+                toastr.error('连麦人数已达上限[' + g_liveGuestMax + ']');
+                return;
+            }
+            sendC2CMessage(ele.data('id'), {
+                "userAction": 2049,
+                "actionParam": ''
+            })
+        });
+
+        $('#exitPlay').on('click', function() {
+            var ele = $('#user-list .active');
+            if (ele.length == 0) {
+                toastr.warning('请先选择一个连麦观众');
+                return;
+            }
+            if (g_role != 1) {
+                toastr.error('不是主播，无法进行该操作');
+                return;
+            }
+            if (ele.data('role') != 2) {
+                toastr.error('只能对连麦观众进行下麦操作');
+                return;
+            }
+            SendGroupMessage({
+                "userAction": E_IM_CustomCmd.AVIMCMD_Multi_CancelInteract,
+                "actionParam": ele.data('id')
+            }, function() {
+                //重新拉取用户列表
+                setTimeout(function() {
+                    getUserList();
+                }, 2000);
+            })
+        });
+
+        $('#invitedNo').on('click', function(e) {
+            sendC2CMessage(g_invite, {
+                "userAction": E_IM_CustomCmd.AVIMCMD_Multi_Interact_Refuse,
+                "actionParam": ''
+            }, function() {
+                $('#invitedBox').modal('hide');
+            })
+        })
+        $('#invitedYes').on('click', function(e) {
+            sendC2CMessage(g_invite, {
+                "userAction": 2051,
+                "actionParam": ''
+            }, function() {
+                sdk.changeRole('LiveGuest', function() {
+                    g_role = 2;
+                    report({
+                        "token": g_token,
+                        "roomnum": g_roomnum,
+                        "role": g_role,
+                        "thumbup": 0
+                    });
+                    $('#invitedBox').modal('hide');
+                    OnBtnOpenCamera();
+                });
+            })
+        });
+
+
+        window.onbeforeunload = function() {
+            //满足2个条件 1 : 主播  2:在房间里 ，刷新/关闭前：退出房间并通知业务后台
+            if (g_role == 1 && g_roomnum) {
+                OnBtnQuitRoom(function() {
+                    toastr.warning("正在退出房间");
+                    $('#detail').css('display', 'none');
+                    $('#list').css('display', 'block');
+                    OnBtnGetList();
+                });
+                return "正在退出房间";
+            }
+        }
+    </script>
+</body>
+
+</html>
