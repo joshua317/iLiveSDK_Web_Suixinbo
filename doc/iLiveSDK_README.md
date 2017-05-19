@@ -9,13 +9,13 @@
 3. 在html的<head>节点中引入js文件,如下:
 
 ```js
-	<script type="text/javascript" src="js/iLiveSDK.js"></script>
+<script type="text/javascript" src="js/iLiveSDK.js"></script>
 ```
 
 4. 在html的<body>节点中加载cab文件,如下:
 
 ```js
-	<object id="iLiveSDKCom" classid="CLSID:54E71417-216D-47A2-9224-C991A099C531" codebase="路径/iLiveSDK.cab#version=版本号"></object>
+<object id="iLiveSDKCom" classid="CLSID:54E71417-216D-47A2-9224-C991A099C531" codebase="路径/iLiveSDK.cab#version=版本号"></object>
 ```
 
 	这里填写版本号，以后更新iLiveSDK，只需替换cab和js文件，修改此处版本号，用户打开页面，会提示安装新版本cab文件;  
