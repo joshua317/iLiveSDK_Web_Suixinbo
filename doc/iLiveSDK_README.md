@@ -6,13 +6,13 @@
 ## iLiveSDK集成步骤
 1. 下载iLiveSDK的cab和js文件,[下载](https://github.com/zhaoyang21cn/iLiveSDK_Web_Demos/blob/master/iLiveSDK)
 2. 将iLiveSDK.cab和iLiveSDK.js拷贝到项目目录下;
-3. 在html的<head>节点中引入js文件,如下:
+3. 在html的head节点中引入js文件,如下:
 
 ```js
 <script type="text/javascript" src="js/iLiveSDK.js"></script>
 ```
 
-4. 在html的<body>节点中加载cab文件,如下:
+4. 在html的body节点中加载cab文件,如下:
 
 ```js
 <object id="iLiveSDKCom" classid="CLSID:54E71417-216D-47A2-9224-C991A099C531" codebase="路径/iLiveSDK.cab#version=版本号"></object>
