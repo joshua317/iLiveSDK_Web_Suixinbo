@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>WebRTC</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./assets/css/bootstrap.css">
+    <link rel="stylesheet" href="./assets/css/bootflat.min.css">
+    <link rel="stylesheet" href="./assets/css/toastr.min.css">
+    <link rel='stylesheet' href='./assets/css/style.css' />
+    <script>
+        (function() {
+            if (location.hostname.indexOf('sxb.qcloud.com') === -1) return;
+            var param = window.location.search + window.location.hash;
+            if ((navigator.userAgent.match(/iPhone/i)) || (navigator.userAgent.match(/iPod/i)) || (navigator.userAgent.match(/android/gi)) || (navigator.userAgent.match(/Windows Phone/i))) {
+                location.replace("https://sxb.qcloud.com/webrtc/mobile/index.html" + param);
+            }
+        })();
+    </script>
+</head>
+
+<body>
+    <div class="navi">
+        <h1>WebRTC PC端</h1> <button type="button" onclick="App.logout()" class="btn btn-link logout-btn" style="float:right;margin:3px">退出</button>
+
+    </div>
+    <div class="container-fluid">
+        <div id="login-container" class="row mode" style="display: none">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <div class="hide">
+                        <label for="sdkappid">SDKAPPID:</label>
+                        <input type="text" class="form-control" id="sdkappid" value="1400027849">
+                        <label for="room-number">房间号:</label>
+                        <!--<input type="text" class="form-control" id="room-number" value="">-->
+                        <input type="text" class="form-control" id="room-number" value="123456">
+                    </div>
+                    <label for="username">用户名:</label>
+                    <!--<input type="text" class="form-control" id="username" value="">-->
+                    <input type="text" class="form-control" id="username" value="neallin">
+                    <label for="password">密码:</label>
+                    <input type="password" class="form-control" id="password" value="123456">
+                    <!--<input type="password" class="form-control" id="password" value="">-->
+                </div>
+            </div>
+            <div class="col-md-6">
+                <button type="button" class="btn btn-success" onclick="App.login()">登录</button>
+            </div>
+            <div class="col-md-6">
+                <button type="button" class="btn btn-default" onclick="App.register()">注册</button>
+            </div>
+        </div>
+        <div id="main-container" class="row mode" style="display: none">
+            <div class="flex-container">
+                <div class="flex-item">
+                    <div role="tabpanel" class="tab-pane active" id="roomlist">
+                        <!--<button type="button" onclick="createRoom()" class="btn btn-primary navbar-btn">创建房间</button>&nbsp;&nbsp;-->
+                        <button type="button" onclick="App.refreshRoom()" class="btn btn-link btn-block">刷新列表</button>
+                        <div id="roomlist-box">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-item">
+                    <div id="chatroom">
+                        <div id="video-container">
+                            <video id="local-video" class="video-item viewMode" autoplay="autoplay" data-videotype="local"></video>
+                            <video id="remote-video" class="video-item viewMode" autoplay="autoplay" data-videotype="remote"></video>
+
+                            <div id="button-container">
+                                <a id="mute-audio" href="javascript:;">音频</a>
+                                <a id="mute-video" href="javascript:;">视频</a>
+                                <a id="hangup" href="javascript:;">挂断</a>
+                                <a id="snapcapture" href="javascript:;">截屏</a>
+                                <a id="reversal" href="javascript:;">切换</a>
+                                <a id="record" href="javascript:;">录制</a>
+                                <a id="play" href="javascript:;">播放</a>
+                                <!--<a id="download" href="javascript:;">下载</a>-->
+                            </div>
+                        </div>
+
+                        <div class="history-msg">
+                            <div id="msg-box"></div>
+                        </div>
+                        <div class="input-group">
+                            <input id="msg_input" type="text" class="form-control" placeholder="">
+                            <span class="input-group-btn">
+                                <button class="btn btn-success" type="button" onclick="App.sendMsg()">确定发送</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-item">
+                    <div id="recordVideo">
+                        <video id="recorded" autoplay loop style="width:100%;min-height:200px;"></video>
+                    </div>
+                    <div id="snapcapture-list" class="list-group">
+                        <div class="list-group-item">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+
+
+<script id="room-tpl" type="text/html">
+    {{ each rooms as item }}
+    <div data-roomnum="{{item.info.roomnum}}" data-groupid="{{item.info.groupid}}" role="button">
+        <p style="padding:7px;margin:0;"><span>{{ item.info.title }}</span><br /><span>用户名：{{ item.uid }}</span></p>
+    </div>
+    {{ /each }}
+</script>
+<script src="./assets/libs/jquery-3.1.1.min.js"></script>
+<script src="./assets/libs/bootstrap.js"></script>
+<script src="./assets/libs/toastr.min.js"></script>
+<script src="./assets/libs/artTemplate.js"></script>
+<script src="./assets/libs/adapter.js"></script>
+<script src="./assets/libs/WebRTCAPI.js"></script>
+<script src="./assets/libs/webim.js"></script>
+
+<script src="./assets/libs/store.min.js"></script>
+<script src="./assets/js/im.js"></script>
+<script src="./assets/js/index.js"></script>
+
+</html>
