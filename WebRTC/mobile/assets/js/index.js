@@ -137,37 +137,41 @@ function createRoom() {
         url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=create",
         data: JSON.stringify(jsonObj),
         success: function(json) {
-            RoomNumber = json.data.roomnum;
-            store.set("roomnum", RoomNumber);
-            store.set("role", 'LiveMaster');
-            createGroup();
-            initRTC();
+            if (json.errorCode == 0) {
+                RoomNumber = json.data.roomnum;
+                store.set("roomnum", RoomNumber);
+                store.set("role", 'LiveMaster');
+                createGroup();
+                initRTC();
 
-            var reportObj = {
-                "token": loginInfo.token,
-                "room": {
-                    "title": '[WebRTC]' + loginInfo.identifier,
-                    "roomnum": RoomNumber,
-                    "type": "live",
-                    "groupid": String(RoomNumber),
-                    "appid": loginInfo.sdkAppID,
-                    "device": 2,
-                    "videotype": 0
-                }
-            };
-            $.ajax({
-                type: "POST",
-                url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=reportroom",
-                data: JSON.stringify(reportObj),
-                success: function(rspJson) {
-                    report({
-                        "token": loginInfo.token,
+                var reportObj = {
+                    "token": loginInfo.token,
+                    "room": {
+                        "title": '[WebRTC]' + loginInfo.identifier,
                         "roomnum": RoomNumber,
-                        "role": Role.LiveMaster,
-                        "thumbup": 0
-                    });
-                }
-            });
+                        "type": "live",
+                        "groupid": String(RoomNumber),
+                        "appid": loginInfo.sdkAppID,
+                        "device": 2,
+                        "videotype": 0
+                    }
+                };
+                $.ajax({
+                    type: "POST",
+                    url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=reportroom",
+                    data: JSON.stringify(reportObj),
+                    success: function(rspJson) {
+                        report({
+                            "token": loginInfo.token,
+                            "roomnum": RoomNumber,
+                            "role": Role.LiveMaster,
+                            "thumbup": 0
+                        });
+                    }
+                });
+            } else {
+                ajaxErrorCallback(json);
+            }
         }
     });
 }
@@ -191,19 +195,19 @@ function report(obj) {
 
 
 function onRemoteCloseAudio() {
-    $.tips("on remote close audio!", "warning");
+    $.toptip("on remote close audio!", "warning");
 }
 
 function onRemoteLeave() {
-    $.tips("on remote leave!", "warning");
+    $.toptip("on remote leave!", "warning");
 }
 
 function onRemoteCloseVideo() {
-    $.tips("on remote close video!", "warning");
+    $.toptip("on remote close video!", "warning");
 }
 
 function onKickout() {
-    $.tips("on kick out!", "warning");
+    $.toptip("on kick out!", "warning");
 
 }
 
@@ -215,7 +219,7 @@ function onLocalStreamAdd(stream) {
 function onRemoteStreamAdd(stream) {
     // remotesteam = stream;
     $("#remote-video")[0].srcObject = stream;
-    $.tips("画面成功接入", "success")
+    $.toptip("画面成功接入", "success")
 }
 
 function onCreateRoomCallback(result) {
@@ -365,6 +369,7 @@ function filterLiveRoomName(rooms) {
 function getRoomList(cb) {
     $("#input-container").hide();
     $("#main-container").show();
+
     $.ajax({
         type: "POST",
         url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=roomlist",

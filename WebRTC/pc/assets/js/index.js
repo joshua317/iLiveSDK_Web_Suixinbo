@@ -5,6 +5,7 @@ var Stream = {
     remote: null,
     local: null
 };
+var gSpinner;
 var rtclistener = {
     onRemoteCloseAudio: onRemoteCloseAudio,
     onRemoteLeave: onRemoteLeave,
@@ -94,6 +95,8 @@ var App = {
 
         if (store.get("loginInfo")) {
             loginInfo = store.get("loginInfo");
+
+
             getRoomList(function() {
                 if (store.get("roomnum")) {
                     RoomNumber = store.get("roomnum");
@@ -179,7 +182,9 @@ var App = {
 
         $("#roomlist-box").on("click", "[role=button]", function() {
             var btn = $(this);
-            if (btn.data("roomnum")) {
+            if (btn.data("playurl")) {
+                $("#record-video").attr("src", btn.data('playurl'));
+            } else if (btn.data("roomnum")) {
                 RoomNumber = btn.data("roomnum");
                 store.set("role", 'LiveGuest');
                 store.set("roomnum", RoomNumber);
@@ -536,26 +541,49 @@ function filterLiveRoomName(rooms) {
 function getRoomList(cb) {
     $("#login-container").hide();
     $("#main-container").show();
+    gSpinner = new Spinner({ lines: 11, length: 26, width: 16, radius: 28, scale: 0.25, corners: 1, color: '#fff', opacity: 0.25, rotate: 13, direction: 1, speed: 1, trail: 60, fps: 20, zIndex: 2e9, className: 'spinner', top: '50%', left: '50%', shadow: false, hwaccel: false, position: 'absolute' }).spin();
+
+    document.getElementById('roomlist').appendChild(gSpinner.el);
+    $("#roomlist-box").html('');
+
+
+    if (/record/.test(location.href)) {
+        var type = "record";
+        var url = "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=recordlist";
+    } else {
+        var type = "live";
+        var url = "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=roomlist";
+    }
     $.ajax({
         type: "POST",
-        url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=roomlist",
+        url: url,
         data: JSON.stringify({
             "type": 'live',
             "token": loginInfo.token,
             "index": 0,
-            "size": 30,
+            "size": 50,
+            "type": 1,
             "appid": loginInfo.sdkAppID
         }),
         success: function(data) {
+            gSpinner.stop();
             if (data && data.errorCode === 0) {
-                var html = template("room-tpl", { rooms: filterLiveRoomName(data.data.rooms) });
+                if (type == 'record') {
+                    var html = template("record-tpl", { rooms: filterLiveRoomName(data.data.videos) });
+                } else {
+                    var html = template("room-tpl", { rooms: filterLiveRoomName(data.data.rooms) });
+                }
                 $("#roomlist-box").html(html);
                 if (cb) cb();
             } else {
                 ajaxErrorCallback(data);
             }
         },
-        error: function(error, xhr) {}
+        error: function(error, xhr) {
+            setTimeout(function() {
+                gSpinner.stop();
+            }, 10000);
+        }
     });
 }
 

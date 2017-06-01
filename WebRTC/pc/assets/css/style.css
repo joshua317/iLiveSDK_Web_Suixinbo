@@ -84,7 +84,10 @@
         padding-top: 10px;
     }
     
-    .video-item {}
+    .video-item {
+        width: 100%;
+        height: 100%;
+    }
     
     #video-container {
         width: 100%;
@@ -302,12 +305,28 @@
         top: 10px;
     }
     
-    #roomlist-box {}
+    #roomlist {
+        position: relative;
+        height: 100%;
+    }
+    
+    #roomlist-box {
+        position: absolute;
+        top: 35px;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        overflow: auto;
+    }
     
     #roomlist-box>div {
         border-left: 4px solid transparent;
         border-bottom: 1px solid #333;
         padding: 10px;
+    }
+    
+    #roomlist-box>div.spinner {
+        border: 0
     }
     
     #roomlist-box>div:hover,
@@ -317,4 +336,39 @@
     
     video {
         background: #000
+    }
+    
+    .tab-content {
+        height: 100%;
+        position: relative;
+        padding-right: 0;
+        height: calc(100% - 38px);
+    }
+    
+    .nav-tabs {
+        background: transparent;
+        color: #fff
+    }
+    
+    .nav-tabs>li {
+        border: 0
+    }
+    
+    .nav-tabs>li>a {
+        color: #fff
+    }
+    
+    .nav-tabs>li.active>a,
+    .nav-tabs>li.active>a:focus,
+    .nav-tabs>li.active>a:hover {
+        background: transparent!important;
+        color: rgba(30, 166, 100, 1);
+        border-bottom: 2px solid rgba(30, 166, 100, 1);
+    }
+    
+    .nav-tabs>li>a:focus,
+    .nav-tabs>li>a:hover {
+        background: transparent!important;
+        color: rgba(30, 166, 100, 1);
+        border-bottom: 2px solid rgba(30, 166, 100, 1);
     }
