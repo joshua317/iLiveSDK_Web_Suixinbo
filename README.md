@@ -19,5 +19,8 @@ web版随心播能够和PC、Android、IOS互通;
 ## 关键路径LOG
 [关键路径LOG 请遇到问题先自行对比](https://github.com/zhaoyang21cn/suixinbo_doc/blob/master/doc2/log.md)
 
+## 常见问题
+[常见问题](https://github.com/zhaoyang21cn/ILiveSDK_Web_Demos/blob/master/doc/iLiveSDK_QA.md)
+
 ## 技术交流群
 QQ群: 594923937
