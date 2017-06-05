@@ -447,6 +447,13 @@ ILiveSDK.prototype = {
 	setWhite: function (white) {
 		this.ilive.setWhite(white);
 	},
+    /**
+    * 设置清晰程度
+    * @param {number} sharpen - 清晰程度 0~9
+    */
+	setSharpen: function (sharpen) {
+		this.ilive.setSharpen(sharpen);
+	},
 	/**
     * 销毁滤镜资源
     */
