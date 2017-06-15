@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Tbs Test Page</title>
+</head>
+
+<body>
+    <script src="//res.imtt.qq.com/tbs/tbs.js"></script>
+    <script>
+        /*
+                                                                                                		url:双向视频页面url
+                                                                                                		entryId：范围101-127，视频框架指定id
+                                                                                                		videoType：视频框架标识，填true
+                                                                                                	*/
+        var params = {
+            url: "https://sxb.qcloud.com/webrtc/tbs.html",
+            entryId: 101,
+            videoType: true
+        };
+        tbs.midpage.openMidPage(params, function(r) {
+            //success callback
+            alert(JSON.stringify(r))
+        });
+    </script>
+</body>
+
+</html>

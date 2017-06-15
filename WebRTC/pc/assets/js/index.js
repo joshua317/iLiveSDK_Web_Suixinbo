@@ -33,11 +33,11 @@ var loginInfo = {
 };
 
 var App = {
-    render: function(name) {
+    render: function (name) {
         $(".mode").hide();
         $("#" + name).show();
     },
-    login: function() {
+    login: function () {
         var self = this;
         $("#login").prop("disable", true);
         var roomNumber = $("#room-number").val();
@@ -62,13 +62,13 @@ var App = {
         ilvbLogin({
             username: username,
             password: password,
-            success: function() {
+            success: function () {
                 toastr.success("登录成功");
                 self.render("main-container")
             }
         });
     },
-    logout: function() {
+    logout: function () {
         $.extend(loginInfo, {
             'identifier': null,
             'userSig': null,
@@ -79,17 +79,17 @@ var App = {
         store.clear();
         this.render('login-container');
     },
-    register: function() {
+    register: function () {
         webimRegister();
     },
-    refreshRoom: function() {
+    refreshRoom: function () {
         getRoomList();
     },
-    sendMsg: function() {
+    sendMsg: function () {
         onSendMsg();
     },
 
-    init: function() {
+    init: function () {
         $("#username").val(store.get("username"));
         $("#password").val(store.get("password"));
 
@@ -97,13 +97,13 @@ var App = {
             loginInfo = store.get("loginInfo");
 
 
-            getRoomList(function() {
+            getRoomList(function () {
                 if (store.get("roomnum")) {
                     RoomNumber = store.get("roomnum");
                     if (store.get('role') == 'LiveGuest') {
                         $("#roomlist-box button[data-roomnum='" + store.get("roomnum") + "']").trigger('click');
                     } else {
-                        webimLogin(function() {
+                        webimLogin(function () {
                             createRoom();
                         });
                     }
@@ -113,7 +113,7 @@ var App = {
             this.render('login-container');
         }
 
-        $("#mute-audio").off("click").on("click", function() {
+        $("#mute-audio").off("click").on("click", function () {
             if (toggle(this)) {
                 WebRTCAPI.closeAudio();
             } else {
@@ -121,7 +121,7 @@ var App = {
             }
         });
 
-        $("#mute-video").off("click").on("click", function() {
+        $("#mute-video").off("click").on("click", function () {
             if (toggle(this)) {
                 WebRTCAPI.closeVideo();
             } else {
@@ -129,34 +129,34 @@ var App = {
             }
         });
 
-        $("#hangup").off("click").on("click", function() {
+        $("#hangup").off("click").on("click", function () {
             WebRTCAPI.quit();
             store.remove("roomnum");
         });
-        $("#reversal").off("click").on("click", function() {
+        $("#reversal").off("click").on("click", function () {
             $("video").toggleClass("viewMode");
         });
 
 
-        $("#snapcapture").off("click").on("click", function() {
+        $("#snapcapture").off("click").on("click", function () {
             MediaAPI.snapCapture();
         });
 
-        $("#record").click(function() {
+        $("#record").click(function () {
             var ele = $(this);
             var clicks = ele.data('clicks');
             if (clicking) return
             clicking = true;
             if (clicks) {
-                MediaAPI.stopRecording(function() {
+                MediaAPI.stopRecording(function () {
                     ele.data("clicks", !clicks);
                     ele.text("录制");
                     clicking = false;
-                }, function() {
+                }, function () {
                     clicking = false;
                 });
             } else {
-                MediaAPI.startRecording(function() {
+                MediaAPI.startRecording(function () {
                     ele.data("clicks", !clicks);
                     ele.text("停止");
                     clicking = false;
@@ -164,7 +164,7 @@ var App = {
             }
         });
 
-        $("#play").off("click").on("click", function() {
+        $("#play").off("click").on("click", function () {
             if (!MediaAPI.recordedBlobs) {
                 toastr.warning("没有视频数据");
                 return;
@@ -172,7 +172,7 @@ var App = {
             MediaAPI.play();
         });
 
-        $("#download").off("click").on("click", function() {
+        $("#download").off("click").on("click", function () {
             if (!MediaAPI.recordedBlobs) {
                 toastr.warning("没有视频数据");
                 return;
@@ -180,7 +180,7 @@ var App = {
             MediaAPI.download();
         });
 
-        $("#roomlist-box").on("click", "[role=button]", function() {
+        $("#roomlist-box").on("click", "[role=button]", function () {
             var btn = $(this);
             if (btn.data("playurl")) {
                 $("#record-video").attr("src", btn.data('playurl'));
@@ -188,7 +188,7 @@ var App = {
                 RoomNumber = btn.data("roomnum");
                 store.set("role", 'LiveGuest');
                 store.set("roomnum", RoomNumber);
-                webimLogin(function() {
+                webimLogin(function () {
                     applyJoinGroup();
                     initRTC();
                 });
@@ -197,7 +197,7 @@ var App = {
             }
         });
 
-        $("#msg_input").keypress(function(e) {
+        $("#msg_input").keypress(function (e) {
             if (e.which === 13) {
                 App.sendMsg();
             }
@@ -211,7 +211,7 @@ var MediaAPI = {
     recordedBlobs: null,
     recordedVideo: document.querySelector('video#recorded'),
     //截图
-    snapCapture: function() {
+    snapCapture: function () {
         var video = $("#remote-video").get(0);
         var capture = $("<canvas/>").get(0);
         const videoWidth = video.videoWidth,
@@ -232,7 +232,7 @@ var MediaAPI = {
     },
 
     //本地录制
-    startRecording: function(succ, error) {
+    startRecording: function (succ, error) {
         var stream = Stream.remote || Stream.local;
         var self = this;
 
@@ -280,19 +280,19 @@ var MediaAPI = {
         this.recordedVideo.src = null;
         this.recordedVideo.controls = false;
     },
-    stopRecording: function(cb) {
+    stopRecording: function (cb) {
         this.mediaRecorder.stop();
         console.log('Recorded Blobs: ', this.recordedBlobs);
         this.recordedVideo.controls = true;
         this.recordedVideo.poster = null;
         if (cb) cb();
     },
-    play: function() {
+    play: function () {
         var superBuffer = new Blob(this.recordedBlobs, { type: 'video/webm' });
         this.recordedVideo.src = window.URL.createObjectURL(superBuffer);
     },
 
-    download: function() {
+    download: function () {
         var blob = new Blob(this.recordedBlobs, { type: 'video/webm' });
         var url = window.URL.createObjectURL(blob);
         var a = document.createElement('a');
@@ -301,7 +301,7 @@ var MediaAPI = {
         a.download = 'record.webm';
         document.body.appendChild(a);
         a.click();
-        setTimeout(function() {
+        setTimeout(function () {
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
         }, 100);
@@ -318,7 +318,7 @@ function createRoom() {
         type: "POST",
         url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=create",
         data: JSON.stringify(jsonObj),
-        success: function(json) {
+        success: function (json) {
             RoomNumber = json.data.roomnum;
             store.set("roomnum", RoomNumber);
             store.set("role", 'LiveMaster');
@@ -342,7 +342,7 @@ function createRoom() {
                 type: "POST",
                 url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=reportroom",
                 data: JSON.stringify(reportObj),
-                success: function(rspJson) {
+                success: function (rspJson) {
                     report({
                         "token": loginInfo.token,
                         "roomnum": RoomNumber,
@@ -357,12 +357,12 @@ function createRoom() {
 
 function report(obj) {
     clearInterval(ReportInterval);
-    var handleReport = function() {
+    var handleReport = function () {
         $.ajax({
             type: "POST",
             url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=heartbeat",
             data: JSON.stringify(obj),
-            success: function(rspJson) {
+            success: function (rspJson) {
                 console.debug(rspJson);
             }
         });
@@ -394,7 +394,7 @@ function onCreateRoomCallback(result) {
         toastr.error("create room failed!!!");
         return;
     }
-    WebRTCAPI.startWebRTC(function(result) {
+    WebRTCAPI.startWebRTC(function (result) {
         if (result !== 0) {
             var errorStr = "";
             if (result === -10007) {
@@ -438,7 +438,7 @@ function onInitResult(result) {
         }
         toastr.error(errorStr);
     } else {
-        WebRTCAPI.createRoom(RoomNumber, onCreateRoomCallback);
+        WebRTCAPI.createRoom(String(RoomNumber), onCreateRoomCallback);
     }
 }
 
@@ -471,7 +471,7 @@ function webimRegister() {
         type: "POST",
         url: "https://sxb.qcloud.com/sxb_new/?svc=account&cmd=regist",
         data: JSON.stringify(jsonObj),
-        success: function(json) {
+        success: function (json) {
             if (json.errorCode == 0) {
                 toastr.success("注册成功");
             } else {
@@ -492,7 +492,7 @@ function ilvbLogin(opt) {
             "pwd": opt.password,
             "appid": parseInt(loginInfo.sdkAppID)
         }),
-        success: function(data) {
+        success: function (data) {
             if (data && data.errorCode === 0) {
                 loginInfo.token = data.data.token;
                 loginInfo.userSig = data.data.userSig;
@@ -507,7 +507,7 @@ function ilvbLogin(opt) {
                 toastr.error("获取UserSig失败, Info = " + JSON.stringify(data));
             }
         },
-        error: function(error, xhr) {
+        error: function (error, xhr) {
             toastr.error("初始化失败！！！get user sig ajax failed! error : " + error);
             console.error("get user sig ajax failed!");
         }
@@ -519,8 +519,8 @@ function initRTC() {
     var ret = WebRTCAPI.init(rtclistener, {
         "openid": loginInfo.identifier,
         "userSig": loginInfo.userSig,
-        "sdkAppId": loginInfo.sdkAppID,
-        "accountType": loginInfo.accountType
+        "sdkAppId": String(loginInfo.sdkAppID),
+        "accountType": String(loginInfo.accountType)
     });
     if (ret !== 0) {
         $("#login").prop("disable", false);
@@ -530,7 +530,7 @@ function initRTC() {
 //过滤随心播svr返回的房间名，只有特定名字的才展示在列表
 function filterLiveRoomName(rooms) {
     var ret = [];
-    $.each(rooms, function(idx, item) {
+    $.each(rooms, function (idx, item) {
         if (true || item.info.title.indexOf('WebRTC') !== -1) {
             ret.push(item);
         }
@@ -565,7 +565,7 @@ function getRoomList(cb) {
             "type": 1,
             "appid": loginInfo.sdkAppID
         }),
-        success: function(data) {
+        success: function (data) {
             gSpinner.stop();
             if (data && data.errorCode === 0) {
                 if (type == 'record') {
@@ -579,8 +579,8 @@ function getRoomList(cb) {
                 ajaxErrorCallback(data);
             }
         },
-        error: function(error, xhr) {
-            setTimeout(function() {
+        error: function (error, xhr) {
+            setTimeout(function () {
                 gSpinner.stop();
             }, 10000);
         }
@@ -592,7 +592,7 @@ function ajaxErrorCallback(data) {
         case 10009:
             toastr.error("登录态失效,请重新登录");
             store.clear();
-            setTimeout(function() {
+            setTimeout(function () {
                 location.reload();
             }, 1500);
             break;

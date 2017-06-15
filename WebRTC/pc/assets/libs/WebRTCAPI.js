@@ -145,10 +145,13 @@ var webrtc = {
 
 (function (webrtc) {
     var global = new function () {
+        this.relayip = null;
+        this.dataport = null;
+        this.stunport = null;
         this.websocket = null;
         this.peerConnection = null;
         this.WEBRTC_WS_SERVER = "wss://webrtc.qq.com:8687";
-        this.WEBRTC_STUN_SERVER = "stun:webrtc.qq.com:8800";
+        this.WEBRTC_STUN_SERVER = "";
         this.WEBRTC_CGI_SERVER = "https://webrtc.qq.com:8687/webrtc/";
         this.COOKIE_EXPIRES_TIME = 3600 * 24;
         this.isSdpSendOK = false;
@@ -189,7 +192,8 @@ var webrtc = {
             ON_BIND_SESSION: "on_bind_session",
             ON_MEDIA_CHANGE: "on_media_change",
             ON_START_CHAT: "on_start_chat",
-            ON_QUIT_CHAT: "on_quit_chat"
+            ON_QUIT_CHAT: "on_quit_chat",
+            ON_CREATE_ROOM : "on_create_room"
         };
 
         this.MEDIA_CHANGE = {
@@ -206,7 +210,8 @@ var webrtc = {
             START_CHAT: 0x06,
             QUIT_CHAT: 0x08,
             ON_STAGE: 0x0c,
-            WS_INIT_OK: 0x13
+            WS_INIT_OK: 0x13,
+            CREATE_ROOM_RESULT : 0x14
         };
     };
 
@@ -372,7 +377,23 @@ var webrtc = {
 
         } else if (cmd === global.WS_CMD.WS_INIT_OK) {
             global.websocket.socketid = resJson.content.socketid;
+            global.relayip = resJson.content.relayip;
+            global.dataport = resJson.content.dataport;
+            global.stunport = resJson.content.stunport;
+            global.WEBRTC_STUN_SERVER = "stun:" + global.relayip + ":" + global.stunport;
+            console.log("WS_INIT_OK : data = " + JSON.stringify(resJson.content) + " , stun server = " + global.WEBRTC_STUN_SERVER);
             rtclistener.config.onWebSocketInit(0);
+        } else if (cmd === global.WS_CMD.CREATE_ROOM_RESULT) {
+            var data = resJson.content;
+            if (data.ret !== 0) {
+                rtcLog.error("create room error!!! e = " + data.error);
+                rtclistener.config.onCreateRoomResult(data.ret);
+                return;
+            }
+            global.roomid = data.data.roomid;
+            global.config.tinyid = data.data.tinyid;
+            rtcLog.debug("create room ok!!! data = " + JSON.stringify(data.data));
+            rtclistener.config.onCreateRoomResult(0);
         }
     };
     var wsonerror = function (error) {
@@ -489,37 +510,20 @@ var webrtc = {
 
     var openRoom = function (openid, tinyid, roomid, userSig) {
         rtcLog.debug("open room : openid = " + openid + " , tinyid = " + tinyid + " , roomid = " + roomid);
-        var requestUrl = global.WEBRTC_CGI_SERVER + "createroom";
-        var sendData = {
+
+        var sendData = createJsonFromTag(global.RTC_EVENT.ON_CREATE_ROOM);
+        sendData.data = {
             openid: openid,
             tinyid: tinyid,
             roomid: roomid,
             sdkAppID: global.config.sdkAppId,
             socketid: global.websocket.socketid,
-            userSig:  global.config.userSig
+            userSig:  global.config.userSig,
+            relayip : global.relayip,
+            dataport : global.dataport,
+            stunport : global.stunport
         };
-        $.ajax({
-            type: "POST",
-            url: requestUrl,
-            data: sendData,
-            success: function (data) {
-                if (data.ret !== 0) {
-                    rtcLog.error("create room error!!! e = " + data.error);
-                    rtclistener.config.onCreateRoomResult(data.ret);
-                    return;
-                }
-                global.roomid = roomid;
-                global.config.tinyid = data.data.tinyid;
-                rtcLog.debug("create room ok!!! data = " + JSON.stringify(data.data));
-                rtclistener.config.onCreateRoomResult(0);
-            },
-            error: function (XMLHttpRequest, textStatus, errorThrown) {
-                var errorStr = "create room ajax error!!! : readystate = " + XMLHttpRequest.readyState + " , status = " + XMLHttpRequest.status + " , responseText = " + XMLHttpRequest.responseText + " , textStatus = " + textStatus;
-                alert(errorStr);
-                rtcLog.debug(errorStr);
-                rtclistener.config.onCreateRoomResult(-10012);
-            }
-        });
+        global.websocket.send(JSON.stringify(sendData));
         return true;
     };
 
@@ -578,17 +582,20 @@ var webrtc = {
         global.config.accountType = config.accountType;
 
         //check sig
-        var requestUrl = global.WEBRTC_CGI_SERVER + "checksig";
+        var requestUrl = global.WEBRTC_CGI_SERVER + "checksig?callback=?";
         var sendData = {
             openid: global.config.openid,
             userSig: global.config.userSig,
             sdkAppID: global.config.sdkAppId
         };
 
+        var strSendData = "data=" + JSON.stringify(sendData);
         $.ajax({
-            type: "POST",
+            type: "GET",
+            dataType: 'jsonp',
+            jsonp: 'callback',
             url: requestUrl,
-            data: sendData,
+            data: strSendData,
             success: function (data) {
                 if (!data || data.ret !== 0) {
                     rtcLog.error("Check userSig failed!!!");

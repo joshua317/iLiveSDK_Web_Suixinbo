@@ -33,7 +33,8 @@ var WebRTCAPI = {
      *   true                                   -params符合要求，返回true
      *   false                                  -params不符合要求，返回false
      * */
-    init: function(listener, config) {},
+    init: function (listener, config) {
+    },
 
     /*
      * function createRoom
@@ -45,7 +46,8 @@ var WebRTCAPI = {
      *   true                                   -params符合要求并且已经初始化，返回true
      *   false                                  -params不符合要求或者没有初始化，返回false
      * */
-    createRoom: function(roomid, callback) {},
+    createRoom: function (roomid, callback) {
+    },
 
     /*
      * function startWebRTC
@@ -56,7 +58,8 @@ var WebRTCAPI = {
      *   true                                    -params符合要求并且已经初始化并且房间创建成功，返回true
      *   false                                   -params不符合要求或者没有初始化或者没有创建成功房间，返回false
      * */
-    startWebRTC: function(callback) {},
+    startWebRTC: function (callback) {
+    },
 
     /*
      * function closeVideo
@@ -67,7 +70,8 @@ var WebRTCAPI = {
      *   true                                    -params关闭成功，返回true
      *   false                                   -params关闭失败，返回false
      * */
-    closeVideo: function() {},
+    closeVideo: function () {
+    },
 
     /*
      * function openVideo
@@ -78,7 +82,8 @@ var WebRTCAPI = {
      *   true                                    -params打开成功，返回true
      *   false                                   -params打开失败，返回false
      * */
-    openVideo: function() {},
+    openVideo: function () {
+    },
 
     /*
      * function closeAudio
@@ -89,7 +94,8 @@ var WebRTCAPI = {
      *   true                                    -params关闭成功，返回true
      *   false                                   -params关闭失败，返回false
      * */
-    closeAudio: function() {},
+    closeAudio: function () {
+    },
 
     /*
      * function openAudio
@@ -100,7 +106,8 @@ var WebRTCAPI = {
      *   true                                    -params打开成功，返回true
      *   false                                   -params打开失败，返回false
      * */
-    openAudio: function() {},
+    openAudio: function () {
+    },
 
     /*
      * function quit
@@ -111,27 +118,40 @@ var WebRTCAPI = {
      *   true                                      -params退出成功，返回true
      *   false                                     -params退出失败，返回false
      * */
-    quit: function() {}
+    quit: function () {
+    }
 };
 
 var webrtc = {
-    init: function(conf, callback) {},
-    createRoom: function(roomid, callback) {},
-    startWebRTC: function(callback) {},
-    setlistener: function(listener) {},
-    closeVideo: function() {},
-    closeAudio: function() {},
-    openVideo: function() {},
-    openAudio: function() {},
-    quit: function() {}
+    init: function (conf, callback) {
+    },
+    createRoom: function (roomid, callback) {
+    },
+    startWebRTC: function (callback) {
+    },
+    setlistener: function (listener) {
+    },
+    closeVideo: function () {
+    },
+    closeAudio: function () {
+    },
+    openVideo: function () {
+    },
+    openAudio: function () {
+    },
+    quit: function () {
+    }
 };
 
-(function(webrtc) {
-    var global = new function() {
+(function (webrtc) {
+    var global = new function () {
+        this.relayip = null;
+        this.dataport = null;
+        this.stunport = null;
         this.websocket = null;
         this.peerConnection = null;
         this.WEBRTC_WS_SERVER = "wss://webrtc.qq.com:8687";
-        this.WEBRTC_STUN_SERVER = "stun:webrtc.qq.com:8800";
+        this.WEBRTC_STUN_SERVER = "";
         this.WEBRTC_CGI_SERVER = "https://webrtc.qq.com:8687/webrtc/";
         this.COOKIE_EXPIRES_TIME = 3600 * 24;
         this.isSdpSendOK = false;
@@ -172,7 +192,8 @@ var webrtc = {
             ON_BIND_SESSION: "on_bind_session",
             ON_MEDIA_CHANGE: "on_media_change",
             ON_START_CHAT: "on_start_chat",
-            ON_QUIT_CHAT: "on_quit_chat"
+            ON_QUIT_CHAT: "on_quit_chat",
+            ON_CREATE_ROOM: "on_create_room"
         };
 
         this.MEDIA_CHANGE = {
@@ -189,11 +210,12 @@ var webrtc = {
             START_CHAT: 0x06,
             QUIT_CHAT: 0x08,
             ON_STAGE: 0x0c,
-            WS_INIT_OK: 0x13
+            WS_INIT_OK: 0x13,
+            CREATE_ROOM_RESULT: 0x14
         };
     };
 
-    var rtclistener = new function() {
+    var rtclistener = new function () {
         this.config = {
             onRemoteLeave: null,
             onLocalStreamAdd: null,
@@ -204,19 +226,19 @@ var webrtc = {
         };
     };
 
-    var rtcLog = new function() {
+    var rtcLog = new function () {
         var TAG = "WEBRTC_API : ";
         this._debugLogOpen = true;
-        this.openDebugLog = function() {
+        this.openDebugLog = function () {
             this._debugLogOpen = true;
         };
-        this.closeDebugLog = function() {
+        this.closeDebugLog = function () {
             this._debugLogOpen = false;
         };
-        this.error = function(msg) {
+        this.error = function (msg) {
             console.error(TAG + msg);
         };
-        this.debug = function(msg) {
+        this.debug = function (msg) {
             if (!this._debugLogOpen) {
                 return;
             }
@@ -224,7 +246,7 @@ var webrtc = {
         }
     };
 
-    var checkConfig = function() {
+    var checkConfig = function () {
         if (!global.config.openid || !global.config.userSig || !global.config.sdkAppId) {
             rtcLog.error("config is null!!! config = " + JSON.stringify(global.config));
             return false;
@@ -232,7 +254,7 @@ var webrtc = {
         return true;
     };
 
-    var initWebSocket = function(callback) {
+    var initWebSocket = function (callback) {
         try {
             rtclistener.config.onWebSocketInit = callback;
             //set userSig appid identifer in url
@@ -251,7 +273,7 @@ var webrtc = {
         }
     };
 
-    var setlistener = function(listeners) {
+    var setlistener = function (listeners) {
 
         if (!listeners.onRemoteLeave || !listeners.onLocalStreamAdd || !listeners.onPeerStreamAdd || !listeners.onMediaChange) {
             rtcLog.error("listener is empty!!!");
@@ -264,34 +286,34 @@ var webrtc = {
         return true;
     };
 
-    var getLocalStream = function(callback) {
-        navigator.getUserMedia(global.constraints, function(media) {
+    var getLocalStream = function (callback) {
+        navigator.getUserMedia(global.constraints, function (media) {
             rtcLog.debug("get user media ok!!!");
             global.localStream = media;
             if (global.peerConnection) {
                 global.peerConnection.addStream(media);
             }
             callback(0, media);
-        }, function(error) {
+        }, function (error) {
             rtcLog.error("get user media failed : error = " + error);
             callback(-10008, error);
         });
     };
 
-    var getSdp = function(callback) {
-        global.peerConnection.createOffer(global.offerSdpOption).then(function(offer) {
+    var getSdp = function (callback) {
+        global.peerConnection.createOffer(global.offerSdpOption).then(function (offer) {
             return global.peerConnection.setLocalDescription(offer);
-        }).then(function() {
+        }).then(function () {
             var desc = global.peerConnection.localDescription;
             rtcLog.debug("get local sdp info : " + desc.sdp);
             callback(0, desc);
-        }).catch(function(reason) {
+        }).catch(function (reason) {
             console.error("create offer failed : reason = " + reason);
             callback(-10009, reason);
         });
     };
 
-    var clearGlobalValues = function() {
+    var clearGlobalValues = function () {
         global.hasSendCandidate = false;
         global.isSdpSendOK = false;
         global.localCandidateList = [];
@@ -304,7 +326,7 @@ var webrtc = {
         };
     };
 
-    var createPeerConnection = function() {
+    var createPeerConnection = function () {
         clearGlobalValues();
         var stun = {
             iceServers: [{
@@ -335,10 +357,10 @@ var webrtc = {
         return true;
     };
 
-    var wsonopen = function() {
+    var wsonopen = function () {
         rtcLog.debug("web socket init success");
     };
-    var wsonmessage = function(message) {
+    var wsonmessage = function (message) {
         var msg = message.data;
         var resJson = JSON.parse(msg);
         var cmd = resJson.cmd;
@@ -355,19 +377,35 @@ var webrtc = {
 
         } else if (cmd === global.WS_CMD.WS_INIT_OK) {
             global.websocket.socketid = resJson.content.socketid;
+            global.relayip = resJson.content.relayip;
+            global.dataport = resJson.content.dataport;
+            global.stunport = resJson.content.stunport;
+            global.WEBRTC_STUN_SERVER = "stun:" + global.relayip + ":" + global.stunport;
+            console.log("WS_INIT_OK : data = " + JSON.stringify(resJson.content) + " , stun server = " + global.WEBRTC_STUN_SERVER);
             rtclistener.config.onWebSocketInit(0);
+        } else if (cmd === global.WS_CMD.CREATE_ROOM_RESULT) {
+            var data = resJson.content;
+            if (data.ret !== 0) {
+                rtcLog.error("create room error!!! e = " + data.error);
+                rtclistener.config.onCreateRoomResult(data.ret);
+                return;
+            }
+            global.roomid = data.data.roomid;
+            global.config.tinyid = data.data.tinyid;
+            rtcLog.debug("create room ok!!! data = " + JSON.stringify(data.data));
+            rtclistener.config.onCreateRoomResult(0);
         }
     };
-    var wsonerror = function(error) {
-        var errorStr = "websocket error : " + JSON.stringify(error);
+    var wsonerror = function (error) {
+        var errorStr = "websocket error : " + error;
         alert(errorStr);
         rtcLog.error(errorStr);
     };
-    var wsonclose = function() {
+    var wsonclose = function () {
         rtcLog.error("websocket close!");
     };
 
-    var filterIceCandidate = function(candidate) {
+    var filterIceCandidate = function (candidate) {
         var str = candidate.candidate;
         if (str.indexOf("tcp") !== -1) {
             return false;
@@ -379,7 +417,7 @@ var webrtc = {
         return true;
     };
 
-    var getIceCandidateType = function(candidate) {
+    var getIceCandidateType = function (candidate) {
         try {
             var str = candidate.candidate;
             var params = str.split(" ");
@@ -390,15 +428,15 @@ var webrtc = {
         }
     };
 
-    var onIceCandidate = function(e) {
+    var onIceCandidate = function (e) {
         var candidate = e.candidate;
         if (!candidate) {
             rtcLog.debug("Ice Candidate End!");
             return;
         }
-        rtcLog.debug("on ice candidate : sdpMLineIndex = " + candidate.sdpMLineIndex +
-            " , sdpMid = " + candidate.sdpMid +
-            " , candidate = " + candidate.candidate);
+        rtcLog.debug("on ice candidate : sdpMLineIndex = " + candidate.sdpMLineIndex
+            + " , sdpMid = " + candidate.sdpMid
+            + " , candidate = " + candidate.candidate);
 
         if (filterIceCandidate(candidate)) {
             var msg = {
@@ -414,112 +452,95 @@ var webrtc = {
             global.localCandidateList.push(msg);
         }
     };
-    var onTrack = function(e) {
+    var onTrack = function (e) {
         rtcLog.debug("on track");
         rtclistener.config.onPeerStreamAdd(e.stream);
     };
-    var onIceConnectionStateChange = function(e) {
+    var onIceConnectionStateChange = function (e) {
         var str = "on ice connection state change : iceConnectionState = " + e.target.iceConnectionState + " , iceGatheringState = " + e.target.iceGatheringState;
         if (e.target.iceConnectionState === "failed" || e.target.iceGatheringState === "failed") {
             alert(str);
         }
         rtcLog.debug("on ice connection state change : iceConnectionState = " + e.target.iceConnectionState + " , iceGatheringState = " + e.target.iceGatheringState);
     };
-    var onRemoveStream = function(e) {
+    var onRemoveStream = function (e) {
 
     };
-    var onRemoteCandidate = function(remoteCandidate) {
+    var onRemoteCandidate = function (remoteCandidate) {
         rtcLog.debug("on peer candidate : remote candidate = " + JSON.stringify(remoteCandidate));
-        global.peerConnection.addIceCandidate(remoteCandidate, function() {
+        global.peerConnection.addIceCandidate(remoteCandidate, function () {
             rtcLog.debug("add ice candidate ok");
-        }, function(e) {
+        }, function (e) {
             rtcLog.error("error e = " + e);
         });
     };
 
-    var sendLocalCandidate = function(candidate) {
+    var sendLocalCandidate = function (candidate) {
         var sendData = createJsonFromTag(global.RTC_EVENT.ON_PEER_CANDIDATE);
         sendData.data = candidate;
         global.websocket.send(JSON.stringify(sendData));
     };
-    var onRemoteSdp = function(remoteSdp) {
+    var onRemoteSdp = function (remoteSdp) {
         rtcLog.debug("on anwser sdp : " + remoteSdp.sdp);
-        global.peerConnection.setRemoteDescription(new RTCSessionDescription(remoteSdp), function() {
+        global.peerConnection.setRemoteDescription(new RTCSessionDescription(remoteSdp), function () {
             if (global.localCandidateList.length > 0 && !global.hasSendCandidate) {
                 global.hasSendCandidate = true;
                 sendLocalCandidate(global.localCandidateList[global.localCandidateList.length - 1]);
             }
             global.isSdpSendOK = true;
-        }, function(e) {
+        }, function (e) {
             alert(e);
             console.log(e);
         });
     };
 
-    var onMediaChange = function(info) {
+    var onMediaChange = function (info) {
 
     };
-    var onQuitChat = function(info) {
+    var onQuitChat = function (info) {
 
     };
 
-    var createSendJson = function(tag) {
+    var createSendJson = function (tag) {
         return {
             tag_key: tag,
             data: null
         }
     };
 
-    var openRoom = function(openid, tinyid, roomid, userSig) {
+    var openRoom = function (openid, tinyid, roomid, userSig) {
         rtcLog.debug("open room : openid = " + openid + " , tinyid = " + tinyid + " , roomid = " + roomid);
-        var requestUrl = global.WEBRTC_CGI_SERVER + "createroom";
-        var sendData = {
+
+        var sendData = createJsonFromTag(global.RTC_EVENT.ON_CREATE_ROOM);
+        sendData.data = {
             openid: openid,
             tinyid: tinyid,
             roomid: roomid,
             sdkAppID: global.config.sdkAppId,
             socketid: global.websocket.socketid,
-            userSig: global.config.userSig
+            userSig: global.config.userSig,
+            relayip: global.relayip,
+            dataport: global.dataport,
+            stunport: global.stunport
         };
-        $.ajax({
-            type: "POST",
-            url: requestUrl,
-            data: sendData,
-            success: function(data) {
-                if (data.ret !== 0) {
-                    rtcLog.error("create room error!!! e = " + data.error);
-                    rtclistener.config.onCreateRoomResult(data.ret);
-                    return;
-                }
-                global.roomid = roomid;
-                global.config.tinyid = data.data.tinyid;
-                rtcLog.debug("create room ok!!! data = " + JSON.stringify(data.data));
-                rtclistener.config.onCreateRoomResult(0);
-            },
-            error: function(XMLHttpRequest, textStatus, errorThrown) {
-                var errorStr = "create room ajax error!!! : readystate = " + XMLHttpRequest.readyState + " , status = " + XMLHttpRequest.status + " , responseText = " + XMLHttpRequest.responseText + " , textStatus = " + textStatus;
-                alert(errorStr);
-                rtcLog.debug(errorStr);
-                rtclistener.config.onCreateRoomResult(-10012);
-            }
-        });
+        global.websocket.send(JSON.stringify(sendData));
         return true;
     };
 
-    var createJsonFromTag = function(tag) {
+    var createJsonFromTag = function (tag) {
         return {
             tag_key: tag,
             data: ""
         };
     };
 
-    var sendSdp = function(sdp) {
+    var sendSdp = function (sdp) {
         var sendData = createJsonFromTag(global.RTC_EVENT.ON_PEER_SDP);
         sendData.data = sdp;
         global.websocket.send(JSON.stringify(sendData));
     };
 
-    var changeLocalMedia = function(isVideo, isOpen) {
+    var changeLocalMedia = function (isVideo, isOpen) {
         rtcLog.debug("change local media : is video : " + isVideo + " , is open = " + isOpen);
         if (!global.localStream) {
             rtcLog.error("change local media failed! local media is null");
@@ -554,36 +575,39 @@ var webrtc = {
         }
         return true;
     };
-    webrtc.init = function(config, callback) {
+    webrtc.init = function (config, callback) {
         global.config.userSig = config.userSig;
         global.config.openid = config.openid;
         global.config.sdkAppId = config.sdkAppId;
         global.config.accountType = config.accountType;
 
         //check sig
-        var requestUrl = global.WEBRTC_CGI_SERVER + "checksig";
+        var requestUrl = global.WEBRTC_CGI_SERVER + "checksig?callback=?";
         var sendData = {
             openid: global.config.openid,
             userSig: global.config.userSig,
             sdkAppID: global.config.sdkAppId
         };
 
+        var strSendData = "data=" + JSON.stringify(sendData);
         $.ajax({
-            type: "POST",
+            type: "GET",
+            dataType: 'jsonp',
+            jsonp: 'callback',
             url: requestUrl,
-            data: sendData,
-            success: function(data) {
+            data: strSendData,
+            success: function (data) {
                 if (!data || data.ret !== 0) {
                     rtcLog.error("Check userSig failed!!!");
                     callback(-10003);
                     return;
                 }
                 rtcLog.debug("Check userSig ok!!!");
-                initWebSocket(function(ret) {
+                initWebSocket(function (ret) {
                     callback(ret);
                 });
             },
-            error: function(XMLHttpRequest, textStatus, errorThrown) {
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
                 var errorStr = "Check userSig ajax error!!! : readystate = " + XMLHttpRequest.readyState + " , status = " + XMLHttpRequest.status + " , responseText = " + XMLHttpRequest.responseText + " , textStatus = " + textStatus;
                 alert(errorStr);
                 rtcLog.debug(errorStr);
@@ -593,18 +617,19 @@ var webrtc = {
         return 0;
     };
 
-    webrtc.createRoom = function(roomid, callback) {
+    webrtc.createRoom = function (roomid, callback) {
         rtclistener.config.onCreateRoomResult = callback;
+        console.debug('global.config.openid, global.config.tinyid, roomid, global.config.userSig', global.config.openid, global.config.tinyid, roomid, global.config.userSig);
         openRoom(global.config.openid, global.config.tinyid, roomid, global.config.userSig);
     };
 
-    webrtc.setlistener = function(listener) {
+    webrtc.setlistener = function (listener) {
         return setlistener(listener);
     };
-    webrtc.quit = function() {
+    webrtc.quit = function () {
 
         if (global.localStream) {
-            global.localStream.getTracks().forEach(function(track) {
+            global.localStream.getTracks().forEach(function (track) {
                 track.stop();
             });
             global.localStream = null;
@@ -619,24 +644,24 @@ var webrtc = {
         }
         clearGlobalValues();
     };
-    webrtc.closeAudio = function() {
+    webrtc.closeAudio = function () {
         return changeLocalMedia(false, false);
     };
-    webrtc.closeVideo = function() {
+    webrtc.closeVideo = function () {
         return changeLocalMedia(true, false);
     };
-    webrtc.openAudio = function() {
+    webrtc.openAudio = function () {
         return changeLocalMedia(false, true);
     };
-    webrtc.openVideo = function() {
+    webrtc.openVideo = function () {
         return changeLocalMedia(true, true);
     };
-    webrtc.startWebRTC = function(callback) {
+    webrtc.startWebRTC = function (callback) {
         if (!createPeerConnection()) {
             callback(-10007);
             return;
         }
-        getLocalStream(function(result, info) {
+        getLocalStream(function (result, info) {
             if (result !== 0) {
                 rtcLog.error("get local stream failed! e = " + info);
                 callback(result);
@@ -644,7 +669,7 @@ var webrtc = {
             }
             rtclistener.config.onLocalStreamAdd(info);
 
-            getSdp(function(result, info) {
+            getSdp(function (result, info) {
                 if (result !== 0) {
                     rtcLog.error("get local sdp failed!!! e = " + info);
                     callback(result);
@@ -657,8 +682,8 @@ var webrtc = {
     };
 })(webrtc);
 
-(function(WebRTCAPI) {
-    var global = new function() {
+(function (WebRTCAPI) {
+    var global = new function () {
         this.config = {
             openid: "",
             userSig: "",
@@ -676,20 +701,20 @@ var webrtc = {
         this.roomid = 0;
     };
 
-    var onMediaChange = function(isVideo, isOpen) {
+    var onMediaChange = function (isVideo, isOpen) {
 
     };
 
-    var onRemoteLeave = function() {
+    var onRemoteLeave = function () {
 
     };
 
-    var onLocalStreamAdd = function(stream) {
+    var onLocalStreamAdd = function (stream) {
         console.log("local stream add!!!");
         global.listener.onLocalStreamAdd(stream);
     };
 
-    var onPeerStreamAdd = function(stream) {
+    var onPeerStreamAdd = function (stream) {
         console.log("remote stream add!!!");
         global.listener.onRemoteStreamAdd(stream);
     };
@@ -701,46 +726,46 @@ var webrtc = {
         onPeerStreamAdd: onPeerStreamAdd
     };
 
-    var onKickOut = function() {
+    var onKickOut = function () {
         console.error("On Kick Out!!!");
         webrtc.quit();
     };
 
-    var getBrowserInfo = function() {
+    var getBrowserInfo = function () {
         var Sys = {};
         var ua = navigator.userAgent.toLowerCase();
         console.log('navigator.userAgent=' + ua);
         var s;
-        (s = ua.match(/msie ([\d.]+)/)) ? Sys.ie = s[1]:
+        (s = ua.match(/msie ([\d.]+)/)) ? Sys.ie = s[1] :
             (s = ua.match(/firefox\/([\d.]+)/)) ? Sys.firefox = s[1] :
-            (s = ua.match(/chrome\/([\d.]+)/)) ? Sys.chrome = s[1] :
-            (s = ua.match(/opera.([\d.]+)/)) ? Sys.opera = s[1] :
-            (s = ua.match(/version\/([\d.]+).*safari/)) ? Sys.safari = s[1] : 0;
-        if (Sys.ie) { //Js判断为IE浏览器
+                (s = ua.match(/chrome\/([\d.]+)/)) ? Sys.chrome = s[1] :
+                    (s = ua.match(/opera.([\d.]+)/)) ? Sys.opera = s[1] :
+                        (s = ua.match(/version\/([\d.]+).*safari/)) ? Sys.safari = s[1] : 0;
+        if (Sys.ie) {//Js判断为IE浏览器
             return {
                 'type': 'ie',
                 'ver': Sys.ie
             };
         }
-        if (Sys.firefox) { //Js判断为火狐(firefox)浏览器
+        if (Sys.firefox) {//Js判断为火狐(firefox)浏览器
             return {
                 'type': 'firefox',
                 'ver': Sys.firefox
             };
         }
-        if (Sys.chrome) { //Js判断为谷歌chrome浏览器
+        if (Sys.chrome) {//Js判断为谷歌chrome浏览器
             return {
                 'type': 'chrome',
                 'ver': Sys.chrome
             };
         }
-        if (Sys.opera) { //Js判断为opera浏览器
+        if (Sys.opera) {//Js判断为opera浏览器
             return {
                 'type': 'opera',
                 'ver': Sys.opera
             };
         }
-        if (Sys.safari) { //Js判断为苹果safari浏览器
+        if (Sys.safari) {//Js判断为苹果safari浏览器
             return {
                 'type': 'safari',
                 'ver': Sys.safari
@@ -752,7 +777,7 @@ var webrtc = {
         };
     };
 
-    WebRTCAPI.init = function(listener, config) {
+    WebRTCAPI.init = function (listener, config) {
         if (!listener || !listener.onRemoteCloseVideo ||
             !listener.onRemoteLeave || !listener.onRemoteCloseAudio ||
             !listener.onInitResult || !listener.onLocalStreamAdd || !listener.onRemoteStreamAdd) {
@@ -778,42 +803,42 @@ var webrtc = {
 
         //check browser
         var info = getBrowserInfo();
-        if (info.type !== "chrome" && info.type !== "firefox" && info.type !== "safari") {
+        if (info.type !== "chrome" && info.type !== "firefox") {
             console.error("WebRTC API init failed! browser not support webrtc!");
             global.listener.onInitResult(-10002);
             return 0;
         }
         webrtc.setlistener(webrtcListener);
-        return webrtc.init(global.config, function(ret) {
+        return webrtc.init(global.config, function (ret) {
             global.listener.onInitResult(ret);
         });
     };
 
-    WebRTCAPI.createRoom = function(roomid, callback) {
+    WebRTCAPI.createRoom = function (roomid, callback) {
         return webrtc.createRoom(roomid, callback);
     };
 
-    WebRTCAPI.startWebRTC = function(callback) {
+    WebRTCAPI.startWebRTC = function (callback) {
         return webrtc.startWebRTC(callback);
     };
 
-    WebRTCAPI.closeAudio = function() {
+    WebRTCAPI.closeAudio = function () {
         return webrtc.closeAudio();
     };
 
-    WebRTCAPI.closeVideo = function() {
+    WebRTCAPI.closeVideo = function () {
         return webrtc.closeVideo();
     };
 
-    WebRTCAPI.openAudio = function() {
+    WebRTCAPI.openAudio = function () {
         return webrtc.openAudio();
     };
 
-    WebRTCAPI.openVideo = function() {
+    WebRTCAPI.openVideo = function () {
         return webrtc.openVideo();
     };
 
-    WebRTCAPI.quit = function() {
+    WebRTCAPI.quit = function () {
         return webrtc.quit();
     };
 })(WebRTCAPI);
