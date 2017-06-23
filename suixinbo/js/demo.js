@@ -14,6 +14,7 @@ var g_invite = null;
 var g_liveGuestCount = 0; //连麦用户总数
 var g_liveGuestMax = 3; //连麦用户总数
 var g_request_status = 0;
+var g_screenRender = null;
 
 
 
@@ -270,6 +271,14 @@ function onRoomEvent(roomevent) {
             }
         }
     }
+    else if (roomevent.eventid == E_iLiveRoomEventType.HAS_SCREEN_VIDEO)//打开屏幕分享
+    {
+        g_screenRender.setAuxRoadVideo(true);
+    }
+    else if (roomevent.eventid == E_iLiveRoomEventType.NO_SCREEN_VIDEO)//关闭屏幕分享
+    {
+        g_screenRender.freeRender();
+    }
 }
 
 
@@ -284,6 +293,7 @@ function OnInit() {
             g_renders[0] = new ILiveRender("render0");
             g_renders[1] = new ILiveRender("render1");
             g_renders[2] = new ILiveRender("render2");
+            g_screenRender = new ILiveRender("screenRender");
 
             sdk.setForceOfflineListener(onForceOfflineCallback);
             sdk.setRoomDisconnectListener(onRoomDisconnect);
@@ -322,7 +332,8 @@ function OnUninit() {
 
 //释放所有渲染器
 function freeAllRender() {
-    g_localRender.freeRender();
+    if(g_localRender) g_localRender.freeRender();
+    if(g_screenRender) g_screenRender.freeRender();
     for (i in g_renders) {
         g_renders[i].freeRender();
     }
@@ -411,7 +422,7 @@ function OnBtnGetList() {
 }
 
 
-function OnBtnCreateRoom(cb) {
+function OnBtnCreateRoom(cb,rotate) {
 
     // var name = prompt("请输入房间名",document.getElementById("username").value+"的直播间");
     var name = document.getElementById("username").value + "的直播间";
@@ -454,7 +465,7 @@ function OnBtnCreateRoom(cb) {
                 ); //这个是运营后台的事件
             }, function(errMsg) {
                 toastr.error("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
-            }); //这个是sdk的事件
+            },rotate); //这个是sdk的事件
         }
     );
 }

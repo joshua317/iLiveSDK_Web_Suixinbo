@@ -125,8 +125,15 @@ ILiveSDK.prototype = {
     * @param {string} controlRole - 角色
     * @param {ILiveSDK~iliveSucCallback} suc - 成功回调
     * @param {ILiveSDK~iliveErrCallback} err - 失败回调
-    */
-    createRoom: function (roomID, controlRole, suc, err) {
+    * @param {boolean} model - 是否竖屏开播; false: 否 true: 是; 如果createRoom 不传该参数，默认false横屏
+    */ 
+    createRoom: function (roomID, controlRole, suc, err, model) {
+        var rotate = -1;
+        if (true == model){
+            rotate = 3; // 3 代表旋转 270度；-1代表不旋转 
+        }else{
+            rotate = 0; // 0 代表不旋转
+        }
         this.ilive.createRoom(roomID, controlRole, function () {
             if (suc) {
                 suc();
@@ -136,7 +143,7 @@ ILiveSDK.prototype = {
                 var obj = JSON.parse(msg);
                 err(obj);
             }
-        });
+        }, rotate);
     },
 
    /**
@@ -188,11 +195,11 @@ ILiveSDK.prototype = {
 
    /**
     * 获取摄像头列表
-    * @returns {number} 结果（0为成功）
+    * @returns {IliveCameraList} 获取摄像头列表信息结果
     */
     getCameraList: function () {        
-        var ret = this.ilive.getCameraList();
-        var obj = JSON.parse(ret);
+        var szRet = this.ilive.getCameraList();
+        var obj = JSON.parse(szRet);
         var cList = [];
         if (obj.code == 0) {
             for (var i = 0; i < obj.cameralist.length; ++i) {
@@ -200,8 +207,7 @@ ILiveSDK.prototype = {
                 cList.push(camera);
             }
         }
-        var ret = new IliveCameraList(obj.code, cList)
-        return ret;
+        return new IliveCameraList(obj.code, cList);
     },
 
 
@@ -211,6 +217,67 @@ ILiveSDK.prototype = {
     */
     closeCamera: function () {
         return this.ilive.closeCamera();
+    },
+
+    /**
+    * 获取任务栏打开的窗口列表
+    * @returns {ILiveWndList} 获取的窗口列表结果
+    */
+    getWndList: function () {
+        var szRet = this.ilive.getWndList();
+        var obj = JSON.parse(szRet);
+        var wList = [];
+        if (obj.code == 0) {
+            for (var i = 0; i < obj.wndlist.length; ++i) {
+                var wnd = new ILiveWnd(obj.wndlist[i].id, obj.wndlist[i].title);
+                wList.push(wnd);
+            }
+        }
+        var ret = new ILiveWndList(obj.code, wList);
+        return ret;
+    },
+
+    /**
+    * 指定窗口进行屏幕分享
+    * @param {number} wndID - 指定窗口的id
+    * @returns {number} 结果（0为成功）
+    */
+    openScreenShareWnd: function(wndID) {
+        return this.ilive.openScreenShareWnd(wndID);
+    },
+
+    /**
+    * 指定区域进行屏幕分享
+    * @param {number} left - 指定区域的左边界x坐标
+    * @param {number} top - 指定区域的上边界y坐标
+    * @param {number} right - 指定区域的右边界x坐标
+    * @param {number} bottom - 指定区域的下边界y坐标
+    * @returns {number} 结果（0为成功）
+    */
+    openScreenShareArea: function(left, top, right, bottom){
+        return this.ilive.openScreenShareArea(left, top, right, bottom);
+    },
+
+    /**
+    * 修改指定的屏幕分享区域
+    * @param {number} left - 指定区域的左边界x坐标
+    * @param {number} top - 指定区域的上边界y坐标
+    * @param {number} right - 指定区域的右边界x坐标
+    * @param {number} bottom - 指定区域的下边界y坐标
+    * @returns {number} 结果（0为成功）
+    */
+    changeScreenShareSize: function(left, top, right, bottom)
+    {
+        return this.ilive.changeScreenShareSize(left, top, right, bottom);
+    },
+
+    /**
+    * 关闭屏幕分享
+    * @returns {number} 结果（0为成功）
+    */
+    closeScreenShare: function()
+    {
+        return this.ilive.closeScreenShare();
     },
 
    /**
@@ -530,6 +597,18 @@ function ILiveRoomEvent(eventid, identifier) {
 }
 
 /**
+* 摄像头信息
+* @class
+* @constructor
+* @param {string} id - 摄像头ID
+* @param {string} name - 摄像头名称
+*/
+function ILiveCamera(id, name) {
+    this.id = id;
+    this.name = name;
+}
+
+/**
 * 摄像头列表
 * @class
 * @constructor
@@ -542,17 +621,28 @@ function IliveCameraList(code, cameras) {
 }
 
 /**
-* 摄像头信息
+* 窗口信息
 * @class
 * @constructor
-* @param {string} id - 摄像头ID
-* @param {string} name - 摄像头名称
+* @param {number} id - 窗口ID
+* @param {string} title - 窗口标题
 */
-function ILiveCamera(id, name) {
+function ILiveWnd(id, title) {
     this.id = id;
-    this.name = name;
+    this.title = title;
 }
 
+/**
+* 窗口列表
+* @class
+* @constructor
+* @param {number} code - 获取结果,0表示成功
+* @param {ILiveWnd[]} wnds - 窗口信息列表
+*/
+function ILiveWndList(code, wnds) {
+    this.code = code;
+    this.wnds = wnds;
+}
 
 /**
 * 视频渲染器
@@ -606,6 +696,24 @@ ILiveRender.prototype = {
     snapShot: function () {
         return this.render.snapShot();
     },
+
+    /**
+    * 设置是否为辅路视频渲染器.
+    * @param {boolean} bAuxRoad - 是否为辅路视频渲染器.
+    * @description 屏幕分享通过辅路流进行传输; 将渲染器设置为辅路视频渲染器，将会渲染屏幕分享的画面;
+    * 设置辅路视频渲染器后，不需要设置此渲染器的identifier了，因为一个房间内只有一路辅流，即同一时刻只能一个用户占用;
+    */
+    setAuxRoadVideo: function (bAuxRoad) {
+        return this.render.setAuxRoadVideo(bAuxRoad);
+    },
+
+    /**
+    * 获取是否为辅路视频渲染器.
+    * @returns {boolean} 是否为辅路视频渲染器;
+    */
+    getAuxRoadVideo: function (bAuxRoad) {
+        return this.render.getAuxRoadVideo();
+    },
 }
 
 /**
@@ -644,6 +752,10 @@ var E_iLiveRoomEventType = {
     HAS_CAMERA_VIDEO: 3,
     /** 关闭摄像头 */
     NO_CAMERA_VIDEO: 4,
+    /** 打开屏幕分享 */
+    HAS_SCREEN_VIDEO: 7,
+    /** 关闭屏幕分享 */
+    NO_SCREEN_VIDEO: 8,
 };
 
 /**

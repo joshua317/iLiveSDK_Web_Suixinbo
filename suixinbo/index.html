@@ -127,6 +127,14 @@
                             </div>
                         </div>
                     </div>
+                    <h3>屏幕分享</h3>
+                    <div class="col-md-12">
+                        <div class="thumbnail">
+                            <div class="video-box-standard">
+                                <object id="screenRender" classid="CLSID:1EA15A99-7F53-4B6F-8947-B57A0729918E" width="100%" height="300"></object>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -150,6 +158,20 @@
                 <button id="btn_open_player" type="button" class="btn btn btn-primary" onclick="OnBtnOpenPlayer()">打开扬声器</button>
                 <button id="btn_close_player" type="button" class="btn btn btn-default" onclick="OnBtnClosePlayer()">关闭扬声器</button>
                 <br/>
+                <br/>
+                <button id="get_screen_window" type="button" class="btn btn btn-primary" onclick="getWindowList()">获取窗口</button>
+                <select id="share_wnd" class="form-control" style="max-width:300px;"></select>
+                <button id="btn_open_screen_share_window" type="button" class="btn btn btn-primary" onclick="OnBtnOpenScreenShareWnd()">屏幕分享(指定窗口)</button>
+                <br/>
+                <br/>
+                <button type="button" class="btn btn btn-primary"  onclick="OnBtnOpenScreenShareArea()">屏幕分享(指定区域）</button>
+                <button type="button" class="btn btn btn-primary"  onclick="OnBtnChangeScreenShareSize()">修改屏幕分享区域</button>
+                <button type="button" class="btn btn btn-primary"  onclick="OnBtnCloseScreenShare()">关闭屏幕分享</button>
+                X0: <input id="x0" class="form-control"  type="text" value="0" style="width:70px;"/>
+                Y0: <input id="y0" class="form-control"  type="text" value="0"  style="width:70px;" />
+                X1: <input id="x1" class="form-control"  type="text" value="0"  style="width:70px;" />
+                Y1: <input id="y1" class="form-control"  type="text" value="0"  style="width:70px;" />
+                <br/>
                 <div class="form-inline" style="margin-top:10px;">
                     <div class="form-group">
                         <label for="exampleInputName2">发送群消息</label>
@@ -166,6 +188,7 @@
                 <h3>开发者调试</h3>
                 <hr/>
                 <button type="button" class="btn btn btn-primary" id="createroom">创建房间</button>
+                <input id="rotateScreen" type="checkbox" class="btn btn-warning">竖屏开播
                 <br/>
                 <h3>房间列表</h3>
                 <br/>
@@ -180,14 +203,19 @@
         {{ each rooms as item }}
         <div class="col-sm-6 col-md-4 room-item">
             <div class="thumbnail">
-                <h3>{{ item.info.title }}</h3>
+                <h3>{{ item.info.title }}&nbsp;</h3>
                 <img src="{{ item.info.cover || 'http://ilivesdk-1253488539.cosgz.myqcloud.com/default.png' }}" alt="...">
                 <div class="caption">
                     <p><span style="float:right">点赞：{{ item.info.thumbup }}</span><span>人数：{{ item.info.memsize }}</span></p>
-                    <p><button href="javascript:;" data-roomnum="{{item.info.roomnum}}" data-groupid="{{item.info.groupid}}" class="btn btn-primary" role="button">加入房间</button></p>
+                    <p><button href="javascript:;" data-roomnum="{{item.info.roomnum}}" data-groupid="{{item.info.groupid}}" class="btn btn-primary" role="button">加入房间</button><span style="float:right">主播：{{ item.uid }}</span></p>
                 </div>
             </div>
         </div>
+        {{ /each }}
+    </script>
+    <script id="wnd-tpl" type="text/html">
+        {{ each list as item}}
+        <option value="{{item.id}}">{{ item.title }}</option>
         {{ /each }}
     </script>
     <script>
@@ -242,6 +270,7 @@
         });
 
 
+
         $('#createroom').click(function(e) {
             OnBtnCreateRoom(function(id) {
                 $('#room').text('房间号:' + id);
@@ -249,7 +278,7 @@
                 $('#detail').css('display', 'block');
                 $('#exitPlay').show();
                 $('#addPlay').show();
-            })
+            },$('#rotateScreen').prop("checked"))
         })
 
         $('#refreshroom').click(function(e) {
@@ -325,6 +354,100 @@
                 }, 2000);
             })
         });
+        $("#x1").val( screen.width );
+        $("#y1").val( screen.height );
+
+
+
+        function getWindowList() {
+            var ret = sdk.getWndList();
+            if (ret.code != 0) {
+                alert("获取窗口列表出错; 错误码:" + ret.code);
+                return;
+            }
+            if (ret.wnds.length == 0) {
+                alert("没有可供分享的窗口");
+                return;
+            }
+            var html = template("wnd-tpl",{list : ret.wnds});
+            $("#share_wnd").html(html);
+        };
+
+
+        function OnBtnOpenScreenShareWnd() {
+
+            if (g_role == 0) {
+                toastr.error('被连麦之后才可以打开屏幕分享');
+                return;
+            }
+            if(!$("#share_wnd").val()) {
+                alert("没有可供分享的窗口");
+                return;
+            }
+            if(g_screenRender){
+                sdk.closeScreenShare();
+                g_screenRender.freeRender();
+            }
+            //切换的时候free需要时间，做一个settimeout
+            setTimeout(function(){
+                var nRet = sdk.openScreenShareWnd( $("#share_wnd").val());  //这里直接写死为分享获取到的第一个窗口
+                g_screenRender.setAuxRoadVideo(true);
+            },100)
+        };
+
+        function OnBtnOpenScreenShareArea() {
+
+            if (g_role == 0) {
+                toastr.error('被连麦之后才可以打开屏幕分享');
+                return;
+            }
+            var x0 = $("#x0").val();
+            var y0 = $("#y0").val();
+            var x1 = $("#x1").val();
+            var y1 = $("#y1").val();
+            if(g_screenRender){
+                sdk.closeScreenShare();
+                g_screenRender.freeRender();
+            }
+            //切换的时候free需要时间，做一个settimeout
+            setTimeout(function(){
+                var nRet = sdk.openScreenShareArea(x0, y0, x1, y1);
+                if (nRet != 0) {
+                    alert("打开屏幕分享失败,错误码: "+nRet);
+                }
+                else {
+                    g_screenRender.setAuxRoadVideo(true);
+                }
+            },100)
+        };
+        function OnBtnChangeScreenShareSize() {
+
+            if (g_role == 0) {
+                toastr.error('被连麦之后才可以打开屏幕分享');
+                return;
+            }
+            var x0 = $("#x0").val();
+            var y0 = $("#y0").val();
+            var x1 = $("#x1").val();
+            var y1 = $("#y1").val();
+            var nRet = sdk.changeScreenShareSize(x0, y0, x1, y1);
+            if (nRet != 0) {
+                alert("修改屏幕分享失败,错误码: "+nRet);
+            }
+        };
+        function OnBtnCloseScreenShare() {
+            if (g_role == 0) {
+                toastr.error('被连麦之后才可以打开屏幕分享');
+                return;
+            }
+            var nRet = sdk.closeScreenShare();
+            if (nRet != 0) {
+                alert("关闭屏幕分享失败,错误码: "+nRet);
+            }
+            else {
+                g_screenRender.freeRender();
+            }
+        };
 
         $('#invitedNo').on('click', function(e) {
             sendC2CMessage(g_invite, {
