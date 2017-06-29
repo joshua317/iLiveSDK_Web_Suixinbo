@@ -1,7 +1,7 @@
 ﻿# iLiveSDK集成参考
 
 ## 支持的浏览器
-32位IE9，32位IE10，IE11
+32位IE9、32位IE10、32位和64位IE11
 
 ## iLiveSDK集成步骤
 1. 下载iLiveSDK的cab和js文件,[下载](https://github.com/zhaoyang21cn/iLiveSDK_Web_Demos/blob/master/iLiveSDK)
