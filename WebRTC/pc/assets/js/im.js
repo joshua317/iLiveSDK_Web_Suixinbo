@@ -181,10 +181,10 @@ function onSendMsg() {
     var msgLen = webim.Tool.getStrBytes(msgContent);
     if (msgContent.length < 1) {
         alert("发送的消息不能为空!");
-        $("#send_msg_text").val('');
         return;
     }
     //发消息处理
+    $("#msg_input").val('');
     handleMsgSend(msgContent);
 }
 
@@ -225,20 +225,15 @@ function handleMsgSend(msgContent) {
 }
 
 
-function addMsg(msg, prepend) {
-    var isSelfSend, fromAccount, fromAccountNick, fromAccountImage, sessType, subType;
 
-    isSelfSend = msg.getIsSend(); //消息是否为自己发的
-    fromAccount = msg.getFromAccount();
-    window.mmm = msg;
-
-    var msgHtml = "<p>" + webim.Tool.formatText2Html(msg.getFromAccount() +
-        // "&nbsp;&nbsp;" + webim.Tool.formatTimeStamp(msg.getTime()) +
-        ":" + mmm.toHtml()) + "</p>";
-
-    $("#msg-box").append(msgHtml);
-    setTimeout(function() {
-        $("#msg-box").parent().scrollTop(100000);
-    }, 10);
-    //消息列表
+function addMsg(msg) {
+    var msgItem = $(template("msg-item-tpl", {
+        msg: {
+            who: msg.getFromAccount(),
+            content: msg.toHtml(),
+            isSelfSend: msg.getIsSend()
+        }
+    }));
+    $("#msg-box").append(msgItem);
+    $(".chatting-area").scrollTop(10000)
 }

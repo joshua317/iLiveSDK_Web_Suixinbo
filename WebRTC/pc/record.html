@@ -69,13 +69,14 @@
                         <div role="tabpanel" class="tab-pane active" id="roomlist">
                             <!--<button type="button" onclick="createRoom()" class="btn btn-primary navbar-btn">创建房间</button>&nbsp;&nbsp;-->
                             <button type="button" onclick="App.refreshRoom()" class="btn btn-link btn-block">刷新列表</button>
-                            <div id="roomlist-box">
+                            <div id="roomlist-box" style="top:35px;">
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="flex-item">
                     <div id="chatroom">
+                        <p id="name"></p>
                         <div id="video-container">
                             <video id="record-video" class="video-item viewMode" controls autoplay="autoplay" data-videotype="local"></video>
                         </div>
@@ -99,7 +100,7 @@
 
 <script id="record-tpl" type="text/html">
     {{ each rooms as item }}
-    <div data-uid="{{item.uid}}" data-playurl="{{item.playurl[0]}}" role="button">
+    <div data-uid="{{item.uid}}" data-name="{{item.name}}" data-playurl="{{item.playurl[0]}}" role="button">
         <p style="padding:7px;margin:0;"><span>{{ item.videoId }}</span><br /><span>用户名：{{ item.uid }}</span></p>
     </div>
     {{ /each }}

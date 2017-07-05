@@ -5,9 +5,10 @@
     <title>WebRTC</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="./assets/css/bootstrap.css">
-    <link rel="stylesheet" href="./assets/css/bootflat.min.css">
+    <!--<link rel="stylesheet" href="./assets/css/bootstrap.css">-->
+    <!--<link rel="stylesheet" href="./assets/css/bootflat.min.css">-->
     <link rel="stylesheet" href="./assets/css/toastr.min.css">
+    <link rel='stylesheet' href='./assets/css/video-call.css' />
     <link rel='stylesheet' href='./assets/css/style.css' />
     <script>
         (function() {
@@ -21,58 +22,201 @@
 </head>
 
 <body>
-    <div class="navi">
-        <h1>WebRTC PC端</h1> <button type="button" onclick="App.logout()" class="btn btn-link logout-btn" style="float:right;margin:3px">退出</button>
 
-    </div>
-    <div class="container-fluid">
-        <div id="login-container" class="row mode" style="display: none">
-            <div class="col-md-12">
-                <div class="form-group">
-                    <div class="hide">
-                        <label for="sdkappid">SDKAPPID:</label>
-                        <input type="text" class="form-control" id="sdkappid" value="1400027849">
-                        <label for="room-number">房间号:</label>
-                        <!--<input type="text" class="form-control" id="room-number" value="">-->
-                        <input type="text" class="form-control" id="room-number" value="123456">
-                    </div>
-                    <label for="username">用户名:</label>
-                    <!--<input type="text" class="form-control" id="username" value="">-->
-                    <input type="text" class="form-control" id="username" value="neallin">
-                    <label for="password">密码:</label>
-                    <input type="password" class="form-control" id="password" value="123456">
-                    <!--<input type="password" class="form-control" id="password" value="">-->
-                </div>
+
+    <div id="login-container" class="row mode container login" style="display: none">
+        <div style="display: none">
+            <label for="sdkappid">SDKAPPID:</label>
+            <input type="text" class="form-control" id="sdkappid" value="1400027849">
+            <label for="room-number">房间号:</label>
+            <!--<input type="text" class="form-control" id="room-number" value="">-->
+            <!--<input type="text" class="form-control" id="room-number" value="123456">-->
+        </div>
+        <div class="login-wrap">
+            <div class="login-typing">
+                <input type="text" class="mobile" placeholder="输入用户名" id="username">
+                <input type="password" class="mobile" placeholder="输入用户密码" id="password">
             </div>
-            <div class="col-md-6">
-                <button type="button" class="btn btn-success" onclick="App.login()">登录</button>
-            </div>
-            <div class="col-md-6">
-                <button type="button" class="btn btn-default" onclick="App.register()">注册</button>
+            <div class="btns-wrap">
+                <p class="btn-login" onclick="App.login()">登录</p>
+                <p class="btn-register" onclick="App.register()">注册</p>
             </div>
         </div>
-        <div id="main-container" class="row mode" style="display: none">
-            <div class="flex-container">
-                <div class="flex-item">
+    </div>
 
-                    <ul class="nav nav-tabs" role="tablist">
-                        <li role="presentation" class="active"><a href="#" aria-controls="home" role="tab" data-toggle="tab">待接入列表</a></li>
-                        <li role="presentation"><a href="record.html">录制列表</a></li>
-                    </ul>
-                    <div class="tab-content">
-                        <div role="tabpanel" class="tab-pane active" id="roomlist">
-                            <button type="button" onclick="App.refreshRoom()" class="btn btn-link btn-block">刷新列表</button>
-                            <div id="roomlist-box">
-                            </div>
-                        </div>
-                        <div role="tabpanel" class="tab-pane" id="recordlist"></div>
+    <div class="header">
+        <div class="product-wrap">
+            <span class="product-name">Web双向音视频</span>
+            <span class="client-info">（PC端）</span>
+        </div>
+        <div class="user-wrap">
+            <ul class="nav-user">
+                <li>
+                    <a id="userid" class="text-only"></a>
+                </li>
+                <li>
+                    <a href="javascript:;" onclick="App.logout()">退出</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="container-fluid">
+
+
+        <div id="main-container" class="container row mode" style="display: none">
+            <div class="sidebar">
+                <h2>房间列表<span id="total"></span><a onclick="App.refreshRoom()" class="refresh">刷新</a></h2>
+                <!--<ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active"><a href="#" aria-controls="home" role="tab" data-toggle="tab">待接入列表</a></li>
+                    <li role="presentation"><a href="record.html">录制列表</a></li>
+                </ul>-->
+                <div class="sidebar-list-wrap" id="roomlist">
+                    <div id="roomlist-box" class="sidebar-list">
                     </div>
                 </div>
+                <div role="tabpanel" class="tab-pane" id="recordlist"></div>
+
+            </div>
+            <div class="main-area">
+                <div class="panel">
+                    <div class="about-room">
+                        <p class="id">
+                            <span class="label-txt">ID:</span>
+                            <span id="room-id" class="value-txt"></span>
+                        </p>
+                        <p class="user">
+                            <span class="label-txt">User:</span>
+                            <span id="user-id" class="value-txt"></span>
+                        </p>
+                        <!--<p class="staus connected">通话中</p>-->
+                    </div>
+                    <div class="video-panel">
+                        <div class="video-wrap">
+                            <div id="disconnected">
+                                <div class="login-typing" style="position:absolute;bottom:0;left:0;right:0;margin:auto;">
+                                    <input type="text" class="form-control mobile " placeholder="输入房间号" style=" width: 120px; left: 0; right: 0; position: absolute; bottom: 0;margin:auto;text-align: center; width: 120px;" id="room-number" value="">
+                                </div>
+                                <i class="icon-accept" onclick="App.joinRoom()"></i>
+                            </div>
+                            <div id="connected" style="display: none">
+                                <video id="local-video" class="video-item viewMode user-video" autoplay="autoplay" data-videotype="local" muted></video>
+                                <video id="remote-video" class="video-item viewMode cs-video" autoplay="autoplay" data-videotype="remote"></video>
+                                <!--<div class="recording-session">
+                                    <i class="red-circle"></i>
+                                    <span class="mins-txt">22:20</span>
+                                </div>-->
+                                <!--<div class="action-panel">
+                                    <div id="snapcapture" class="btn-snapshot">
+                                        <i></i>
+                                        <div class="btn-bubble">
+                                            <div class="btn-bubble-inner">
+                                                <p>截图</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="mute-video" class="btn-mute-video on ">
+                                        <i></i>
+                                        <div class="btn-bubble">
+                                            <div class="btn-bubble-inner">
+                                                <p>视频</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="mute-audio" class="btn-volume on">
+                                        <i></i>
+                                        <div class="btn-bubble">
+                                            <div class="btn-bubble-inner">
+                                                <p>音频</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="hangup" class="btn-hangup">
+                                        <i></i>
+                                        <div class="btn-bubble">
+                                            <div class="btn-bubble-inner">
+                                                <p>挂断</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="record" class="btn-record on">
+                                        <i></i>
+                                        <div class="btn-bubble">
+                                            <div class="btn-bubble-inner">
+                                                <p>录制</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+-->
+
+                                <div id="button-container">
+                                    <a id="mute-audio" href="javascript:;" class="on">音频</a>
+                                    <a id="mute-video" href="javascript:;" class="on">视频</a>
+                                    <a id="hangup" href="javascript:;">挂断</a>
+                                    <a id="snapcapture" href="javascript:;">截屏</a>
+                                    <a id="reversal" href="javascript:;">切换</a>
+                                    <a id="record" href="javascript:;">录制</a>
+                                    <a id="play" href="javascript:;">播放</a>
+                                    <a id="volume-higher" href="javascript:;">Mic+</a>
+                                    <a id="volume-lower" href="javascript:;">Mic-</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-wrap">
+                            <div class="chatting-area">
+                                <ul id="msg-box">
+
+                                </ul>
+                            </div>
+                            <div class="typing-area">
+                                <input id="msg_input" type="text" class="input-element" placeholder="输入你想要回复的内容">
+                                <span onclick="App.sendMsg()">发送</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sub-panel">
+                    <div class="record">
+                        <h2>录制</h2>
+                        <ul class="record-list-wrap">
+                            <li>
+                                <div id="play" class="item-video">
+                                    <video id="recorded" autoplay style="display:none;width:100%;min-height:120px;position: absolute;z-index: 1;"></video>
+                                    <!--<div class="video-info">
+                                        <div class="video-mask"></div>
+                                        <div class="edit-video">
+                                            <i class="icon-del-video"></i>
+                                            <i class="icon-play-video"></i>
+                                            <div class="bottom-wrap">
+                                                <i class="icon-volume"></i>
+                                                <span class="mins">25:16</span>
+                                            </div>
+                                        </div>
+                                    </div>-->
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="snapshot">
+                        <h2>截图</h2>
+                        <ul id="snapcapture-list" class="snapshot-list-wrap empty">
+                            <li>
+                                <div class="item-snapshot">
+                                    <i class="icon-del-snapshot"></i>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!--
+
                 <div class="flex-item">
                     <div id="chatroom">
                         <div id="video-container">
-                            <video id="local-video" class="video-item viewMode" data-videotype="local" autoplay muted></video>
-                            <video id="remote-video" class="video-item viewMode" data-videotype="remote" autoplay ></video>
+                            <video id="local-video" class="video-item viewMode" data-videotype="local" muted></video>
+                            <video id="remote-video" class="video-item viewMode" data-videotype="remote"></video>
 
                             <div id="button-container">
                                 <a id="mute-audio" href="javascript:;">音频</a>
@@ -82,7 +226,6 @@
                                 <a id="reversal" href="javascript:;">切换</a>
                                 <a id="record" href="javascript:;">录制</a>
                                 <a id="play" href="javascript:;">播放</a>
-                                <!--<a id="download" href="javascript:;">下载</a>-->
                             </div>
                         </div>
 
@@ -106,32 +249,83 @@
 
                         </div>
                     </div>
-                </div>
-            </div>
-
+                </div>-->
         </div>
+
+    </div>
     </div>
 </body>
 
 
+<script id="msg-item-tpl" type="text/html ">
+    {{ if msg.isSelfSend }}
+    <li class="cs-msg">
+        <div class="msg-wrap">
+            <span class="from">我:</span>
+            <span class="msg">{{ msg.content }}</span>
+        </div>
+    </li>
+    {{ else }}
+    <li class="user-msg">
+        <div class="msg-wrap">
+            <span class="from">客服：</span>
+            <span class="msg">{{ msg.content }}</span>
+        </div>
+    </li>
+    {{ /if }}
+</script>
+
+
+<script id="snapshot-item-tpl" type="text/html ">
+    <li>
+        <div class="item-snapshot">
+            <img src=" {{ base64Data }}">
+            <i class="icon-del-snapshot"></i>
+        </div>
+    </li>
+</script>
+
 <script id="room-tpl" type="text/html">
     {{ each rooms as item }}
-    <div data-roomnum="{{item.info.roomnum}}" data-groupid="{{item.info.groupid}}" role="button">
+    <!--<div data-roomnum="{{item.info.roomnum}}" data-groupid="{{item.info.groupid}}" role="button">
         <p style="padding:7px;margin:0;"><span>{{ item.info.title }}</span><br /><span>用户名：{{ item.uid }}</span></p>
-    </div>
+    </div>-->
+
+    <li data-roomnum="{{item.info.roomnum}}" data-uid="{{ item.uid }}" data-title="{{ item.info.title }}" data-groupid="{{item.info.groupid}}" role="button">
+        <div class="item-info">
+            <p class="room-id">
+                <span class="label-txt">ID:  </span>
+                <span class="value-txt">{{item.info.roomnum}}</span><br />
+                <span class="value-txt">{{ item.info.title }}</span>
+            </p>
+            <p class="user-name">
+                <span class="label-txt">USER:</span>
+                <span class="value-txt">{{ item.uid }}</span>
+            </p>
+        </div>
+        <div class="item-status connected-status">通话中</div>
+        <div class="item-status connecting-status">接入中</div>
+        <div class="item-status waiting-status">等待中</div>
+    </li>
     {{ /each }}
 </script>
+
 <script src="./assets/libs/jquery-3.1.1.min.js"></script>
 <script src="./assets/libs/bootstrap.js"></script>
 <script src="./assets/libs/toastr.min.js"></script>
 <script src="./assets/libs/artTemplate.js"></script>
 <script src="./assets/libs/store.min.js"></script>
 <script src="./assets/libs/spin.min.js"></script>
+<script src="./assets/libs/layer.js"></script>
 
 <script src="./assets/libs/adapter.js"></script>
 <script src="./assets/libs/WebRTCAPI.js"></script>
 <script src="./assets/libs/webim.js"></script>
 <script src="./assets/js/im.js"></script>
 <script src="./assets/js/index.js"></script>
+<script>
+    // var element = document.getElementById('local-video');
+    // element.muted = true;
+</script>
 
 </html>

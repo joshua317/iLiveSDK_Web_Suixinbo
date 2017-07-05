@@ -581,7 +581,7 @@ body {
     height: 100%;
     margin: 0;
     background: #21001c;
-    transition: all 0.2s;
+    /*transition: all 0.2s;*/
     top: 0;
     right: 0;
 }
@@ -590,17 +590,17 @@ body {
     display: block;
     position: absolute;
     width: 20%;
-    height: 20%;
+    height: auto;
     margin: 0;
     top: 0;
     right: 0px;
     background: #21001c;
-    transition: all 0.2s;
+    /*transition: all 0.2s;*/
 }
 
 #local-video.viewMode {
     width: 20%;
-    height: 20%;
+    height: auto;
     top: 10px;
     right: 10px;
     z-index: 2;
@@ -712,11 +712,6 @@ svg:hover {
     padding-top: 20vh
 }
 
-.transit {
-    padding-top: 40vh;
-    text-align: center;
-}
-
 .transit .creatRoom {
     padding-bottom: 20px;
 }
@@ -729,7 +724,7 @@ svg:hover {
     left: 0;
     right: 0;
     text-align: center;
-    width: 60px;
+    width: 100px;
     margin: auto;
 }
 
@@ -834,4 +829,91 @@ svg:hover {
 
 .weui-input {
     font-size: 14px;
+}
+
+.btn-create-room-wrapper {
+    width: 140px;
+    height: 140px;
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    margin: auto;
+}
+
+.btn-create-room {
+    width: 100px;
+    height: 100px;
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    margin: auto;
+    border-radius: 100px;
+    background: rgba(0, 111, 255, 1);
+    z-index: 2
+}
+
+.btn-create-room:before {
+    content: " ";
+    width: 100px;
+    height: 100px;
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    right: 0;
+    margin: auto;
+    border-radius: 120px;
+    background: rgba(0, 111, 255, .6);
+    animation: bigger 2s infinite;
+    -webkit-animation: bigger 2s infinite;
+}
+
+.btn-create-room:after {
+    content: " ";
+    width: 100px;
+    height: 100px;
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    right: 0;
+    margin: auto;
+    border-radius: 120px;
+    background: rgba(0, 111, 255, .6);
+    animation: bigger 2s infinite;
+    -webkit-animation: bigger 2s infinite;
+    animation-delay: -0.6s;
+    -moz-animation-delay: -0.6s;
+    -webkit-animation-delay: -0.6s;
+}
+
+.btn-create-room-wrapper p {
+    position: absolute;
+    z-index: 3;
+    width: 100%;
+    line-height: 140px;
+    text-align: center;
+    color: #fff;
+    font-size: 14px;
+}
+
+@keyframes bigger {
+    0% {
+        transform: scale(.9);
+        -webkit-transform: scale(.9);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.8);
+        -webkit-transform: scale(1.8);
+        opacity: 0;
+    }
 }
