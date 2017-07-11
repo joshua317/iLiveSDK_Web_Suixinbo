@@ -517,10 +517,15 @@ function OnBtnJoinRoom(roomid, role, succ, err) {
         return;
     }
     g_request_status = 1;
+    //通过url ？role=2 进来的用户，设置成连麦用户
+    if(/role=2/gi.test(location.search)){
+        g_role = 2;
+    }
+
     var jsonObj = {
         "token": g_token,
         "roomnum": roomid,
-        "role": 0,
+        "role": g_role || 0,
         "operate": 0,
         "id": g_id
     };
@@ -533,10 +538,11 @@ function OnBtnJoinRoom(roomid, role, succ, err) {
                 toastr.error("错误码:" + rspJson.errorCode + " 错误信息:" + rspJson.errorInfo);
                 return;
             }
-            sdk.joinRoom(roomid, "Guest", function() {
+
+
+            sdk.joinRoom(roomid, g_role == 2 ? 'LiveGuest' : "Guest", function() {
                 g_request_status = 0;
                 toastr.success("join room succ");
-                g_role = role || 0;
                 g_roomnum = roomid;
                 succ();
                 SendGroupMessage({
@@ -546,7 +552,7 @@ function OnBtnJoinRoom(roomid, role, succ, err) {
                 report({
                     "token": g_token,
                     "roomnum": g_roomnum,
-                    "role": g_role,
+                    "role": g_role || 0,
                     "thumbup": 0
                 });
                 getUserList();
@@ -583,7 +589,7 @@ function OnBtnQuitRoom(cb) {
                 "token": g_token,
                 "id": g_id,
                 "roomnum": g_roomnum,
-                "role": g_role,
+                "role": g_role || 0,
                 "operate": 1
             }
     }
@@ -856,7 +862,7 @@ function dealCustomMessage(user, msg) {
                     report({
                         "token": g_token,
                         "roomnum": g_roomnum,
-                        "role": g_role,
+                        "role": g_role || 0,
                         "thumbup": 0
                     });
                     getUserList();
