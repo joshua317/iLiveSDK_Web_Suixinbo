@@ -206,7 +206,7 @@ function createRoomCallback() {
     };
     $.ajax({
         type: "POST",
-        url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=reportroom",
+        url: "https://sxb.qcloud.com/sxb_dev/?svc=live&cmd=reportroom",
         data: JSON.stringify(reportObj),
         success: function(rspJson) {
             report({
@@ -228,7 +228,7 @@ function createRoom() {
 
     $.ajax({
         type: "POST",
-        url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=create",
+        url: "https://sxb.qcloud.com/sxb_dev/?svc=live&cmd=create",
         data: JSON.stringify(jsonObj),
         success: function(json) {
             if (json.errorCode == 0) {
@@ -248,7 +248,7 @@ function report(obj) {
     var handleReport = function() {
         $.ajax({
             type: "POST",
-            url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=heartbeat",
+            url: "https://sxb.qcloud.com/sxb_dev/?svc=live&cmd=heartbeat",
             data: JSON.stringify(obj),
             success: function(rspJson) {
                 console.debug(rspJson);
@@ -409,7 +409,7 @@ function webimRegister() {
     };
     $.ajax({
         type: "POST",
-        url: "https://sxb.qcloud.com/sxb_new/?svc=account&cmd=regist",
+        url: "https://sxb.qcloud.com/sxb_dev/?svc=account&cmd=regist",
         data: JSON.stringify(jsonObj),
         success: function(json) {
             if (json.errorCode == 0) {
@@ -426,7 +426,7 @@ function ilvbLogin(opt) {
     loginInfo.identifier = opt.username;
     $.ajax({
         type: "POST",
-        url: "https://sxb.qcloud.com/sxb_new/?svc=account&cmd=login",
+        url: "https://sxb.qcloud.com/sxb_dev/?svc=account&cmd=login",
         data: JSON.stringify({
             "id": loginInfo.identifier,
             "pwd": opt.password,
@@ -483,7 +483,7 @@ function getRoomList(cb) {
 
     $.ajax({
         type: "POST",
-        url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=roomlist",
+        url: "https://sxb.qcloud.com/sxb_dev/?svc=live&cmd=roomlist",
         data: JSON.stringify({
             "type": 'live',
             "token": loginInfo.token,
