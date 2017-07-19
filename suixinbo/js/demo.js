@@ -215,7 +215,7 @@ function onVoiceRecognizeResult(message) {
 }
 
 //界面事件
-var g_serverUrl = "https://sxb.qcloud.com/sxb_new/index.php";
+var g_serverUrl = "https://sxb.qcloud.com/sxb_dev/index.php";
 
 function ajaxPost(url, data, succ, err) {
     if (!window.XMLHttpRequest) {
