@@ -4,29 +4,29 @@
         height: 100%;
         background-color: rgb(25, 27, 28);
     }
-    
+
     a {
         color: #00B7FF;
     }
-    
+
     body {
         display: -webkit-flex;
         -webkit-flex-direction: column;
         align-content: center;
     }
-    
+
     .container-fluid {
         min-width: 1440px!important;
         width: 100%!important;
         padding: 0;
     }
-    
+
     .container-fluid>.row {
         margin: 0
     }
-    
+
     #video-section {}
-    
+
     #button-container {
         position: absolute;
         bottom: 10px;
@@ -53,7 +53,7 @@
         width: 400px;
         margin: auto;
     }
-    
+
     #button-container a {
         width: 40px;
         height: 40px;
@@ -64,27 +64,33 @@
         border-radius: 40px;
         font-size: 14px;
     }
-    
+
     #login-container {}
-    
+
     #main-container {
         display: none;
     }
-    
+
     #login-container button {
         width: 100%
     }
-    
+
     #login-container label {
         color: #fff;
         padding-top: 10px;
     }
-    
+
     .video-item {
         width: 100%;
         height: 100%;
+        -moz-transform: scale(-1,1);
+        -ms-transform: scale(-1,1);
+        -o-transform: scale(-1,1);
+        -webkit-transform: scale(-1,1);
+        transform: scale(-1,1);
+
     }
-    
+
     .refresh {
         color: #3bafda;
         text-align: center;
@@ -92,7 +98,7 @@
         float: right;
         font-size: 13px;
     }
-    
+
     #video-container {
         width: 100%;
         height: 50vh;
@@ -101,7 +107,7 @@
         margin: 0 auto;
         position: relative
     }
-    
+
     #local-video {
         display: inline-block;
         position: absolute;
@@ -113,7 +119,7 @@
         top: 0;
         right: 0;
     }
-    
+
     #remote-video {
         display: inline-block;
         position: absolute;
@@ -125,7 +131,7 @@
         background: rgba(27, 25, 28, 1);
         /*transition: all 0.2s;*/
     }
-    
+
     #local-video.viewMode {
         width: 20%;
         height: 20%;
@@ -134,38 +140,38 @@
         z-index: 2;
         transition: all 0.2s;
     }
-    
+
     #remote-video.viewMode {
         width: 100%;
         height: 100%;
         transition: all 0.2s;
     }
-    
+
     circle {
         fill: #666;
         fill-opacity: 0.6;
     }
-    
+
     svg.on circle {
         fill-opacity: 0;
     }
-    
+
     path.on {
         display: none;
     }
-    
+
     path.off {
         display: block;
     }
-    
+
     svg.on path.on {
         display: block;
     }
-    
+
     svg.on path.off {
         display: none;
     }
-    
+
     svg {
         width: 48px;
         height: 48px;
@@ -184,16 +190,16 @@
         -ms-flex-item-align: auto;
         align-self: auto;
     }
-    
+
     #button-container a:hover,
     #button-container a.on {
         background: #407cf7;
     }
-    
+
     #button-container #hangup:hover {
         background: #dd2c00;
     }
-    
+
     .reversal {
         width: 40px;
         height: 40px;
@@ -201,9 +207,9 @@
         right: 20px;
         bottom: 0;
     }
-    
+
     .chat-box {}
-    
+
     .history-msg {
         background: rgba(27, 25, 28, 1);
         overflow: auto;
@@ -213,28 +219,28 @@
         margin-top: 20px;
         height: calc(33.5vh - 20px);
     }
-    
+
     #chatroom .input-group {
         background: #3c3a3d;
         padding: 15px;
     }
-    
+
     .list-group {
         max-height: calc(100vh - 300px);
         box-sizing: border-box;
         overflow: auto;
     }
-    
+
     .list-group-item {
         background: transparent;
         border-top-color: transparent;
         border-bottom: 1px solid #333;
     }
-    
+
     .list-group-item img {
         width: 100%
     }
-    
+
     .flex-container {
         display: -ms-flexbox;
         display: -webkit-flex;
@@ -256,14 +262,14 @@
         align-items: stretch;
         height: calc(100vh - 50px);
     }
-    
+
     .navi {
         background: rgba(25, 25, 25, 1);
         color: rgba(30, 166, 100, 1);
         height: 50px;
         border-bottom: 2px solid #000;
     }
-    
+
     .navi h1 {
         margin: 0;
         padding: 0;
@@ -272,7 +278,7 @@
         font-size: 25px;
         padding: 0 10px
     }
-    
+
     .flex-item {
         flex-shrink: 0;
         -webkit-order: 0;
@@ -283,12 +289,12 @@
         align-self: auto;
         color: #fff;
     }
-    
+
     .flex-item:nth-child(1) {
         width: 300px;
         background: rgba(27, 25, 28, 1);
     }
-    
+
     .flex-item:nth-child(2) {
         -webkit-flex: 1 1 auto;
         -ms-flex: 1 1 auto;
@@ -296,24 +302,24 @@
         background: rgba(35, 35, 35, 1);
         padding: 30px;
     }
-    
+
     .flex-item:nth-child(3) {
         width: 280px;
         background: rgba(35, 35, 35, 1);
         border-left: 1px solid #333;
     }
-    
+
     .logout-btn {
         position: absolute;
         right: 10px;
         top: 10px;
     }
-    
+
     #roomlist {
         position: relative;
         height: 100%;
     }
-    
+
     #roomlist-box {
         position: absolute;
         top: 35px;
@@ -323,46 +329,46 @@
         right: 0;
         overflow: auto;
     }
-    
+
     #roomlist-box>div {
         border-left: 4px solid transparent;
         border-bottom: 1px solid #333;
         padding: 10px;
     }
-    
+
     #roomlist-box>div.spinner {
         border: 0
     }
-    
+
     #roomlist-box>div:hover,
     #roomlist-box>div.active {
         border-left: 4px solid rgb(30, 166, 100)
     }
-    
+
     video {
         background: #000
     }
-    
+
     .tab-content {
         height: 100%;
         position: relative;
         padding-right: 0;
         height: calc(100% - 38px);
     }
-    
+
     .nav-tabs {
         background: transparent;
         color: #fff
     }
-    
+
     .nav-tabs>li {
         border: 0
     }
-    
+
     .nav-tabs>li>a {
         color: #fff
     }
-    
+
     .nav-tabs>li.active>a,
     .nav-tabs>li.active>a:focus,
     .nav-tabs>li.active>a:hover {
@@ -370,7 +376,7 @@
         color: rgba(30, 166, 100, 1);
         border-bottom: 2px solid rgba(30, 166, 100, 1);
     }
-    
+
     .nav-tabs>li>a:focus,
     .nav-tabs>li>a:hover {
         background: transparent!important;
