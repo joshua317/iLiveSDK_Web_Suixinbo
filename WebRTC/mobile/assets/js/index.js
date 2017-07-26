@@ -10,8 +10,10 @@ var rtclistener = {
     onLocalStreamAdd: onLocalStreamAdd,
     onRemoteStreamAdd: onRemoteStreamAdd,
     onWebSocketClose: onWebSocketClose,
-    onRelayTimeout: onRelayTimeout,
-    onIceConnectionClose: onIceConnectionClose
+    onRelayTimeout: onRelayTimeout, //关闭房间/房间超时/被T下线
+    onIceConnectionClose: onIceConnectionClose, //ice连接断开
+    onRemoteStreamRemove: onRemoteStreamRemove, //关闭视频流
+    onPeerStreamRemove: onPeerStreamRemove //peer连接断开
 };
 //角色
 var Role = {
@@ -109,7 +111,7 @@ var App = {
         $("#username").val(store.get("username"));
         $("#password").val(store.get("password"));
         //已经登录的用户，
-        if (store.get("loginInfo")) {
+        if (false && store.get("loginInfo")) {
             loginInfo = store.get("loginInfo");
             if (false && store.get('roomnum')) {
                 webimLogin(function() {
@@ -170,19 +172,19 @@ var App = {
     }
 };
 
-function renderPx(){
-        var roomId = "ID:" + parseInt(RoomNumber) + "<br/>";
-        var localVideo = $("#local-video").get(0);
-        var localVideoStr = "";
-        if (localVideo.videoWidth) {
-            localVideoStr = "localVideo:" + localVideo.videoWidth + "x" + localVideo.videoHeight + "<br/>"
-        }
-        var remoteVideo = $("#remote-video").get(0);
-        var remoteVideoStr = "";
-        if (remoteVideo.videoWidth) {
-            remoteVideoStr = "remoteVideo:" + remoteVideo.videoWidth + "x" + remoteVideo.videoHeight
-        }
-        $(".room-id").html(roomId + localVideoStr + remoteVideoStr);
+function renderPx() {
+    var roomId = "ID:" + parseInt(RoomNumber) + "<br/>";
+    var localVideo = $("#local-video").get(0);
+    var localVideoStr = "";
+    if (localVideo.videoWidth) {
+        localVideoStr = "localVideo:" + localVideo.videoWidth + "x" + localVideo.videoHeight + "<br/>"
+    }
+    var remoteVideo = $("#remote-video").get(0);
+    var remoteVideoStr = "";
+    if (remoteVideo.videoWidth) {
+        remoteVideoStr = "remoteVideo:" + remoteVideo.videoWidth + "x" + remoteVideo.videoHeight
+    }
+    $(".room-id").html(roomId + localVideoStr + remoteVideoStr);
 }
 
 function createRoomCallback() {
@@ -206,7 +208,7 @@ function createRoomCallback() {
     };
     $.ajax({
         type: "POST",
-        url: "https://sxb.qcloud.com/sxb_dev/?svc=live&cmd=reportroom",
+        url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=reportroom",
         data: JSON.stringify(reportObj),
         success: function(rspJson) {
             report({
@@ -228,7 +230,7 @@ function createRoom() {
 
     $.ajax({
         type: "POST",
-        url: "https://sxb.qcloud.com/sxb_dev/?svc=live&cmd=create",
+        url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=create",
         data: JSON.stringify(jsonObj),
         success: function(json) {
             if (json.errorCode == 0) {
@@ -248,7 +250,7 @@ function report(obj) {
     var handleReport = function() {
         $.ajax({
             type: "POST",
-            url: "https://sxb.qcloud.com/sxb_dev/?svc=live&cmd=heartbeat",
+            url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=heartbeat",
             data: JSON.stringify(obj),
             success: function(rspJson) {
                 console.debug(rspJson);
@@ -274,7 +276,7 @@ function onRemoteCloseVideo() {
 }
 
 function onKickout() {
-    $.toptip("on kick out!", "warning");
+    $.toptip("你被T下线了", "danger");
 
 }
 
@@ -286,16 +288,52 @@ function onRelayTimeout() {
     console.warn('onRelayTimeout')
 }
 
+function onIceConnectionClose() {
+    console.log("onIceConnectionClose!");
+}
+
+function onPeerStreamRemove() {
+    console.log("onPeerStreamRemove");
+}
+
+
+
+var localVideoEle = document.createElement('video');
+
+function createVideoEle(id, opt) {
+    var video = document.createElement('video');
+    video.className = "video-item ";
+    video.autoplay = true;
+    for (var a in opt) {
+        video[a] = opt[a];
+    }
+    $("#" + id).append(video);
+    return video;
+}
+
+
+
 function onLocalStreamAdd(stream) {
-    // localstream = stream;
+    // var video = createVideoEle("remote-video-wrap", { /*id: 'local-video',*/ muted: true });
+    // video.srcObject = stream;
     $("#local-video")[0].srcObject = stream;
 }
 
-function onRemoteStreamAdd(stream) {
-    // remotesteam = stream;
+function onRemoteStreamAdd(stream, srctinyid) {
+    // var video = createVideoEle("remote-video-wrap", { id: srctinyid });
+    // video.srcObject = stream;
     $("#remote-video")[0].srcObject = stream;
     $.toptip("画面成功接入", "success")
 }
+
+
+function onRemoteStreamRemove(data) {
+    var ele = document.getElementById(data.srctinyid);
+    if (ele) {
+        ele.parentNode.removeChild(ele);
+    }
+}
+
 
 
 function onWebSocketClose() {
@@ -342,21 +380,6 @@ function onCreateRoomCallback(result) {
     $("#video-section").show();
     $("#room-number").val("");
 
-    WebRTCAPI.startWebRTC(function(result) {
-        if (result !== 0) {
-            var errorStr = "";
-            if (result === -10007) {
-                errorStr = "PeerConnection 创建失败";
-            } else if (result === -10008) {
-                errorStr = "getUserMedia 失败";
-            } else if (result === -10009) {
-                errorStr = "getLocalSdp 失败";
-            } else {
-                errorStr = "start WebRTC failed!!!";
-            }
-            $.toptip(errorStr, 'error');
-        }
-    });
 }
 
 
@@ -409,7 +432,7 @@ function webimRegister() {
     };
     $.ajax({
         type: "POST",
-        url: "https://sxb.qcloud.com/sxb_dev/?svc=account&cmd=regist",
+        url: "https://sxb.qcloud.com/sxb_new/?svc=account&cmd=regist",
         data: JSON.stringify(jsonObj),
         success: function(json) {
             if (json.errorCode == 0) {
@@ -426,7 +449,7 @@ function ilvbLogin(opt) {
     loginInfo.identifier = opt.username;
     $.ajax({
         type: "POST",
-        url: "https://sxb.qcloud.com/sxb_dev/?svc=account&cmd=login",
+        url: "https://sxb.qcloud.com/sxb_new/?svc=account&cmd=login",
         data: JSON.stringify({
             "id": loginInfo.identifier,
             "pwd": opt.password,
@@ -483,7 +506,7 @@ function getRoomList(cb) {
 
     $.ajax({
         type: "POST",
-        url: "https://sxb.qcloud.com/sxb_dev/?svc=live&cmd=roomlist",
+        url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=roomlist",
         data: JSON.stringify({
             "type": 'live',
             "token": loginInfo.token,

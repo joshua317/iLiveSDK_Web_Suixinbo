@@ -14,9 +14,9 @@
             if (location.hostname.indexOf('sxb.qcloud.com') === -1) return;
             var param = window.location.search + window.location.hash;
             if ((navigator.userAgent.match(/iPhone/i)) || (navigator.userAgent.match(/iPod/i)) || (navigator.userAgent.match(/android/gi)) || (navigator.userAgent.match(/Windows Phone/i))) {
-                location.replace("https://sxb.qcloud.com/webrtc/mobile/index.html" + param);
+                location.replace("mobile/index.html" + param);
             } else {
-                location.replace("https://sxb.qcloud.com/webrtc/pc/index.html" + param);
+                location.replace("pc/index.html" + param);
             }
         })();
     </script>

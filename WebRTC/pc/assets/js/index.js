@@ -16,8 +16,10 @@ var rtclistener = {
     onLocalStreamAdd: onLocalStreamAdd,
     onRemoteStreamAdd: onRemoteStreamAdd,
     onWebSocketClose: onWebSocketClose,
-    onRelayTimeout: onRelayTimeout,
-    onIceConnectionClose: onIceConnectionClose
+    onRelayTimeout: onRelayTimeout, //关闭房间/房间超时/被T下线
+    onIceConnectionClose: onIceConnectionClose, //ice连接断开
+    onRemoteStreamRemove: onRemoteStreamRemove, //关闭视频流
+    onPeerStreamRemove: onPeerStreamRemove //peer连接断开
 };
 var clicking = false;
 //角色
@@ -406,7 +408,7 @@ function createRoom() {
     };
     $.ajax({
         type: "POST",
-        url: "https://sxb.qcloud.com/sxb_dev/?svc=live&cmd=create",
+        url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=create",
         data: JSON.stringify(jsonObj),
         success: function(json) {
             RoomNumber = json.data.roomnum;
@@ -430,7 +432,7 @@ function createRoom() {
             };
             $.ajax({
                 type: "POST",
-                url: "https://sxb.qcloud.com/sxb_dev/?svc=live&cmd=reportroom",
+                url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=reportroom",
                 data: JSON.stringify(reportObj),
                 success: function(rspJson) {
                     report({
@@ -450,7 +452,7 @@ function report(obj) {
     var handleReport = function() {
         $.ajax({
             type: "POST",
-            url: "https://sxb.qcloud.com/sxb_dev/?svc=live&cmd=heartbeat",
+            url: "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=heartbeat",
             data: JSON.stringify(obj),
             success: function(rspJson) {
                 console.debug(rspJson);
@@ -475,8 +477,29 @@ function onRemoteCloseVideo() {
     console.log("on remote close video!");
 }
 
+function onRelayTimeout() {
+    console.warn('onRelayTimeout')
+}
+
+function onIceConnectionClose() {
+    console.log("onIceConnectionClose!");
+}
+
+function onPeerStreamRemove() {
+    console.log("onPeerStreamRemove");
+}
+
+
 function onKickout() {
-    console.log("on kick out!");
+    console.error("on kick out!");
+    layer.confirm('你被T下线了', {
+        btn: ['好的'] //按钮
+    }, function() {
+        // initRTC();
+        layer.closeAll();
+    }, function() {
+        // $("#hangup").trigger('click');
+    });
 }
 
 function onCreateRoomCallback(result) {
@@ -484,23 +507,6 @@ function onCreateRoomCallback(result) {
         toastr.error("create room failed!!!");
         return;
     }
-    WebRTCAPI.startWebRTC(function(result) {
-        if (result !== 0) {
-            var errorStr = "";
-            if (result === -10007) {
-                errorStr = "PeerConnection 创建失败";
-            } else if (result === -10008) {
-                errorStr = "getUserMedia 失败";
-            } else if (result === -10009) {
-                errorStr = "getLocalSdp 失败";
-            } else {
-                errorStr = "start WebRTC failed!!!";
-            }
-            toastr.error(errorStr);
-        } else {
-            $(".connecting").toggleClass("connecting connected")
-        }
-    });
 }
 
 function onLocalStreamAdd(stream) {
@@ -510,8 +516,13 @@ function onLocalStreamAdd(stream) {
 
 function onRemoteStreamAdd(stream) {
     Stream.remote = stream;
-    $("#remote-video")[0].srcObject = stream;;
+    $("#remote-video")[0].srcObject = stream;
 }
+
+function onRemoteStreamRemove(data) {
+    $("#remote-video")[0].srcObject = null;
+}
+
 
 function onWebSocketClose() {
     WebRTCAPI.quit();
@@ -600,7 +611,7 @@ function webimRegister() {
     };
     $.ajax({
         type: "POST",
-        url: "https://sxb.qcloud.com/sxb_dev/?svc=account&cmd=regist",
+        url: "https://sxb.qcloud.com/sxb_new/?svc=account&cmd=regist",
         data: JSON.stringify(jsonObj),
         success: function(json) {
             if (json.errorCode == 0) {
@@ -617,7 +628,7 @@ function ilvbLogin(opt) {
     loginInfo.identifier = opt.username;
     $.ajax({
         type: "POST",
-        url: "https://sxb.qcloud.com/sxb_dev/?svc=account&cmd=login",
+        url: "https://sxb.qcloud.com/sxb_new/?svc=account&cmd=login",
         data: JSON.stringify({
             "id": loginInfo.identifier,
             "pwd": opt.password,
@@ -682,10 +693,10 @@ function getRoomList(cb) {
 
     if (/record/.test(location.href)) {
         var type = "record";
-        var url = "https://sxb.qcloud.com/sxb_dev/?svc=live&cmd=recordlist";
+        var url = "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=recordlist";
     } else {
         var type = "live";
-        var url = "https://sxb.qcloud.com/sxb_dev/?svc=live&cmd=roomlist";
+        var url = "https://sxb.qcloud.com/sxb_new/?svc=live&cmd=roomlist";
     }
     $.ajax({
         type: "POST",
