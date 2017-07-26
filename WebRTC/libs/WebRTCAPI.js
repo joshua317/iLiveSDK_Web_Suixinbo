@@ -166,9 +166,9 @@ if (/test(\d*)\.rtc\.qq\.com/.test(document.domain)) {
             accountType: ""
         };
         this.reportSto = null;
+        this.qualityReportBegin = false;
         this.roomid = -1;
         this.localStream = null;
-        //this.constraintVideo = { width: { exact: 640 }, height: { exact: 368 }, frameRate: { exact: 20 }, googCpuOveruseDetection: false };
 
         this.constraints = {
             "audio": true,
@@ -231,7 +231,7 @@ if (/test(\d*)\.rtc\.qq\.com/.test(document.domain)) {
 
     var rtcLog = new function() {
         var TAG = "WEBRTC_API : ";
-        this._debugLogOpen = true;
+        this._debugLogOpen = false;
         this.openDebugLog = function() {
             this._debugLogOpen = true;
         };
@@ -298,22 +298,6 @@ if (/test(\d*)\.rtc\.qq\.com/.test(document.domain)) {
     var getLocalStream = function(callback) {
         navigator.getUserMedia(global.constraints, function(media) {
             rtcLog.debug("get user media ok!!!");
-            // //处理音频音量
-            // WebRTCAPI.GLOBAL.AudioContext = WebRTCAPI.GLOBAL.AudioContext || new AudioContext();
-            // var ctx = WebRTCAPI.GLOBAL.AudioContext;
-            // var source = ctx.createMediaStreamSource(media);
-            // var audio = ctx.createMediaStreamDestination();
-            // global.gainNode = ctx.createGain();
-            // source.connect(global.gainNode);
-            // global.gainNode.connect(audio);
-            // global.gainNode.gain.value = 1;
-            // //删除原来的音轨
-            // media.getAudioTracks().forEach(function(item) {
-            //     media.removeTrack(item);
-            // });
-            // media.addTrack(audio.stream.getTracks()[0]);
-
-            //origin
 
             WebRTCAPI.GLOBAL.LocalStream = global.localStream = media;
             var peerConnection = global.peerConnections[0];
@@ -370,9 +354,7 @@ if (/test(\d*)\.rtc\.qq\.com/.test(document.domain)) {
     };
 
     var clearGlobalValues = function() {
-        // global.hasSendCandidate = false;
-        // global.isSdpSendOK = false;
-        // global.localCandidateList = [];
+
         global.config = {
             sdkAppId: "",
             openid: "",
@@ -486,11 +468,14 @@ if (/test(\d*)\.rtc\.qq\.com/.test(document.domain)) {
             rtcLog.debug("create room ok!!! data = " + JSON.stringify(data.data));
             webrtc.startWebRTC($.noop);
             rtclistener.config.onCreateRoomResult(0);
+            if (!global.qualityReportBegin) {
+                reportQuality();
+            }
         } else if (cmd === global.WS_CMD.NOTIFY_CREATE_PEER_CONNECTION) {
             var data = resJson.content;
             global.config.sdkAppId = data.sdkAppId;
             global.config.userSig = data.userSig;
-            addPeer(data.openid, data.tinyid, global.roomid, data.srctinyid, loginInfo.userSig, data.peerconnectionport);
+            addPeer(data.openid, data.tinyid, global.roomid, data.srctinyid, data.userSig, data.peerconnectionport);
         } else if (cmd === global.WS_CMD.NOTIFY_CREATE_PEER_CONNECTION_RES) {
             var data = resJson.content;
             global.roomid = data.data.roomid;
@@ -502,7 +487,9 @@ if (/test(\d*)\.rtc\.qq\.com/.test(document.domain)) {
             }
             rtcLog.debug("add peer ok!!! data = " + JSON.stringify(data.data));
             webrtc.startWebRTC($.noop, data.data.srctinyid);
-            reportQuality();
+            if (!global.qualityReportBegin) {
+                reportQuality();
+            }
         } else if (cmd === global.WS_CMD.NOTIFY_CLOSE_PEER_CONNECTION) {
             var data = resJson.content;
             onRemoveStream(data);
@@ -511,6 +498,7 @@ if (/test(\d*)\.rtc\.qq\.com/.test(document.domain)) {
     var wsonerror = function(error) {
         var errorStr = "websocket error : " + error;
         clearTimeout(global.reportSto);
+        global.qualityReportBegin = false;
         rtcLog.error(errorStr);
         if (global.notify) {
             rtclistener.config.onWSClose();
@@ -792,6 +780,7 @@ if (/test(\d*)\.rtc\.qq\.com/.test(document.domain)) {
                 uint32_CPU_curfreq: cpuMaxFrequency,
                 uint32_total_send_bps: 0,
                 AudioReportState: {
+                    uint32_audio_snd_br : 0,
                     uint32_audio_real_recv_pkg: 0,
                     uint32_audio_delay: 0,
                     uint32_audio_jitter: 0,
@@ -814,6 +803,7 @@ if (/test(\d*)\.rtc\.qq\.com/.test(document.domain)) {
                 if (index == 0) {
                     //统计上行数据
                     var pc = pcMap[index];
+                   // getDetailInfo(pc);
                     if (global.localStream) {
                         var videoTrack = global.localStream.getVideoTracks()[0];
                         var audioTrack = global.localStream.getAudioTracks()[0];
@@ -826,7 +816,7 @@ if (/test(\d*)\.rtc\.qq\.com/.test(document.domain)) {
                             result.forEach(function(item) {
                                 if (item.type == "ssrc") {
                                     finalReportData.WebRTCQualityReq.uint32_delay = parseInt(item.googRtt || 0);
-                                    finalReportData.WebRTCQualityReq.uint32_total_send_bps = parseInt(item.bytesSent || 0);
+                                    finalReportData.WebRTCQualityReq.AudioReportState.uint32_audio_snd_br = parseInt(item.bytesSent || 0);
                                 }
                             });
 
@@ -839,14 +829,28 @@ if (/test(\d*)\.rtc\.qq\.com/.test(document.domain)) {
                                 result.forEach(function(item) {
                                     if (item.type == "ssrc") {
                                         finalReportData.WebRTCQualityReq.VideoReportState.uint32_video_delay = parseInt(item.googRtt || 0);
-                                        finalReportData.WebRTCQualityReq.VideoReportState.uint32_video_snd_br = parseInt(item.bytesSent || 0);
+                                        //finalReportData.WebRTCQualityReq.VideoReportState.uint32_video_snd_br = parseInt(item.bytesSent || 0);
                                         finalReportData.WebRTCQualityReq.VideoReportState.VideoEncState[0].uint32_capture_fps = parseInt(item.googFrameRateInput || 0);
                                         finalReportData.WebRTCQualityReq.VideoReportState.VideoEncState[0].uint32_enc_fps = parseInt(item.googFrameRateSent || 0);
                                         finalReportData.WebRTCQualityReq.VideoReportState.VideoEncState[0].uint32_enc_width = parseInt(item.googFrameWidthSent || 0);
                                         finalReportData.WebRTCQualityReq.VideoReportState.VideoEncState[0].uint32_enc_height = parseInt(item.googFrameHeightSent || 0);
                                     }
+                                    pc.getStats(function (stats) {
+                                        var results = stats.result();
+                                        for (var i = 0; i < results.length; i++) {
+                                            var res = results[i];
+                                            if (res.id && res.id == "bweforvideo") {
+                                                var value = res.stat("googTransmitBitrate");
+                                                if (value) {
+                                                    finalReportData.WebRTCQualityReq.VideoReportState.uint32_video_snd_br = parseInt(value);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        doneSize++;
+                                    });
                                 });
-                                doneSize++;
+
                             });
                         });
                     } else {
@@ -900,35 +904,35 @@ if (/test(\d*)\.rtc\.qq\.com/.test(document.domain)) {
         var checkDone = setTimeout(function() {
             //do what you need here
             if (size <= doneSize) {
-                // rtcLog.log("size = " + size + " done size = " + doneSize);
+                rtcLog.debug("size = " + size + " done size = " + doneSize);
                 clearTimeout(checkDone);
 
                 finalReportData.WebRTCQualityReq.uint64_end_utime = new Date().getTime();
 
                 if (!global.preReportData) {
-                    finalReportData.WebRTCQualityReq.uint32_total_send_bps = finalReportData.WebRTCQualityReq.uint32_total_send_bps * 8 + finalReportData.WebRTCQualityReq.VideoReportState.uint32_video_snd_br;
+                    finalReportData.WebRTCQualityReq.uint32_total_send_bps = finalReportData.WebRTCQualityReq.AudioReportState.uint32_audio_snd_br * 8 + finalReportData.WebRTCQualityReq.VideoReportState.uint32_video_snd_br;
                     callback(true, finalReportData);
                     global.preReportData = cloneObj(finalReportData);
                 } else {
                     finalReportData.WebRTCQualityReq.uint64_begine_utime = global.preReportData.WebRTCQualityReq.uint64_end_utime;
                     var tmp = cloneObj(finalReportData);
-                    finalReportData.WebRTCQualityReq.uint32_total_send_bps -= global.preReportData.WebRTCQualityReq.uint32_total_send_bps;
-                    if (finalReportData.WebRTCQualityReq.uint32_total_send_bps <= 0) {
-                        finalReportData.WebRTCQualityReq.uint32_total_send_bps = 0;
-                    }
+
                     finalReportData.WebRTCQualityReq.uint32_real_num -= global.preReportData.WebRTCQualityReq.uint32_real_num;
                     if (finalReportData.WebRTCQualityReq.uint32_real_num <= 0) {
                         finalReportData.WebRTCQualityReq.uint32_real_num = 0;
                     }
+
                     finalReportData.WebRTCQualityReq.AudioReportState.uint32_audio_real_recv_pkg -= global.preReportData.WebRTCQualityReq.AudioReportState.uint32_audio_real_recv_pkg;
                     if (finalReportData.WebRTCQualityReq.AudioReportState.uint32_audio_real_recv_pkg <= 0) {
                         finalReportData.WebRTCQualityReq.AudioReportState.uint32_audio_real_recv_pkg = 0;
                     }
-                    finalReportData.WebRTCQualityReq.VideoReportState.uint32_video_snd_br -= global.preReportData.WebRTCQualityReq.VideoReportState.uint32_video_snd_br;
-                    if (finalReportData.WebRTCQualityReq.VideoReportState.uint32_video_snd_br <= 0) {
-                        finalReportData.WebRTCQualityReq.VideoReportState.uint32_video_snd_br = 0;
+
+                    finalReportData.WebRTCQualityReq.AudioReportState.uint32_audio_snd_br -= global.preReportData.WebRTCQualityReq.AudioReportState.uint32_audio_snd_br;
+                    if (finalReportData.WebRTCQualityReq.AudioReportState.uint32_audio_snd_br <= 0) {
+                        finalReportData.WebRTCQualityReq.AudioReportState.uint32_audio_snd_br = 0;
                     }
-                    finalReportData.WebRTCQualityReq.uint32_total_send_bps = finalReportData.WebRTCQualityReq.uint32_total_send_bps * 8 + finalReportData.WebRTCQualityReq.VideoReportState.uint32_video_snd_br;
+
+                    finalReportData.WebRTCQualityReq.uint32_total_send_bps = finalReportData.WebRTCQualityReq.AudioReportState.uint32_audio_snd_br * 8 + finalReportData.WebRTCQualityReq.VideoReportState.uint32_video_snd_br;
                     global.preReportData = tmp;
                     callback(true, finalReportData);
                 }
@@ -940,10 +944,14 @@ if (/test(\d*)\.rtc\.qq\.com/.test(document.domain)) {
         if (global.reportSto) {
             clearTimeout(global.reportSto);
         }
+        global.qualityReportBegin = true;
 
-        console.log("report quality : peer connection size = " + Object.keys(global.peerConnections).length);
+        rtcLog.debug("report quality : peer connection size = " + Object.keys(global.peerConnections).length);
         getQulityAsync(global.peerConnections, function(result, data) {
             if (!result) {
+                global.reportSto = setTimeout(function() {
+                    reportQuality();
+                }, 2000);
                 return;
             }
             data = resetReportValue(data);
@@ -1039,39 +1047,6 @@ if (/test(\d*)\.rtc\.qq\.com/.test(document.domain)) {
         global.config.accountType = config.accountType;
         global.config.srctinyid = config.srctinyid;
 
-        //check sig
-        /*var requestUrl = global.WEBRTC_CGI_SERVER + "checksig?callback=?";
-        var sendData = {
-            openid: global.config.openid,
-            userSig: global.config.userSig,
-            sdkAppID: global.config.sdkAppId
-        };
-
-        var strSendData = "data=" + JSON.stringify(sendData);
-        $.ajax({
-            type: "GET",
-            dataType: 'jsonp',
-            jsonp: 'callback',
-            url: requestUrl,
-            data: strSendData,
-            success: function(data) {
-                if (!data || data.ret !== 0) {
-                    rtcLog.error("Check userSig failed!!!");
-                    callback(-10003);
-                    return;
-                }
-                rtcLog.debug("Check userSig ok!!!");
-                initWebSocket(function(ret) {
-                    callback(ret);
-                });
-            },
-            error: function(XMLHttpRequest, textStatus, errorThrown) {
-                var errorStr = "Check userSig ajax error!!! : readystate = " + XMLHttpRequest.readyState + " , status = " + XMLHttpRequest.status + " , responseText = " + XMLHttpRequest.responseText + " , textStatus = " + textStatus;
-                alert(errorStr);
-                rtcLog.debug(errorStr);
-                callback(-10012);
-            }
-        });*/
         initWebSocket(function(ret) {
             callback(ret);
         });
@@ -1106,6 +1081,7 @@ if (/test(\d*)\.rtc\.qq\.com/.test(document.domain)) {
     webrtc.quit = function(notify) {
         global.notify = notify || false;
         clearTimeout(global.reportSto);
+        global.qualityReportBegin = false;
         if (global.localStream) {
             global.localStream.getTracks().forEach(function(track) {
                 track.stop();
@@ -1379,7 +1355,6 @@ if (/test(\d*)\.rtc\.qq\.com/.test(document.domain)) {
     WebRTCAPI.startWebRTC = function(callback, srctinyid) {
         return webrtc.startWebRTC(callback, srctinyid);
     };
-
 
     WebRTCAPI.closeAudio = function() {
         return webrtc.closeAudio();
