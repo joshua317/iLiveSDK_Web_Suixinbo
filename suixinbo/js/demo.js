@@ -463,6 +463,9 @@ function OnBtnCreateRoom(cb,rotate) {
                         getUserList();
                     }
                 ); //这个是运营后台的事件
+                OnBtnOpenCamera();
+                OnBtnOpenMic();
+                OnBtnOpenPlayer();
             }, function(errMsg) {
                 toastr.error("错误码:" + errMsg.code + " 错误信息:" + errMsg.desc);
             },rotate); //这个是sdk的事件
